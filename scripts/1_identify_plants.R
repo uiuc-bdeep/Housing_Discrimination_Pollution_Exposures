@@ -29,7 +29,7 @@ zip@data<-data.frame(zip@data)
 
 plants1<-readRDS("stores/plants_colapsed.rds")
 plants1<-plants1 %>% mutate(id=paste0(facility_name,"_",latitude,"_",longitude))
-
+saveRDS(plants1,"stores/plants_colapsed.rds")
 # plants1$latitude<-as.numeric(plants1$latitude)
 # plants1$longitude<-as.numeric(plants1$longitude)
 
