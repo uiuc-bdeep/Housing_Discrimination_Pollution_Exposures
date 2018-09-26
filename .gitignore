@@ -1,5 +1,8 @@
 
 # Created by https://www.gitignore.io/api/r,macos
+##deprecated
+deprecated
+test
 
 ### macOS ###
 # General
@@ -48,7 +51,7 @@ Temporary Items
 
 # RStudio files
 .Rproj.user/
-
+.Rproj
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
