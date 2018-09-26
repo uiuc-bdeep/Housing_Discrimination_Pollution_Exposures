@@ -1,4 +1,4 @@
-# toxic_discrimination
+# Toxic Discrimination
 
 Exploring toxic plants in the US
 
