@@ -16,7 +16,7 @@ lapply(pkg, require, character.only=T)
 rm(pkg)
 require("leaflet")
 
-setwd("~/Dropbox/Research/toxic_discrimination/")
+setwd("~/Dropbox/Research/Toxic_Discrimination/")
 
 load("stores/zipcoder_1_mile_raster.RData")
 

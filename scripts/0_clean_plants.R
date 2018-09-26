@@ -16,7 +16,7 @@ lapply(pkg, require, character.only=T)
 rm(pkg)
 
 
-setwd("~/Dropbox/Research/toxic_discrimination")
+setwd("~/Dropbox/Research/Toxic_Discrimination")
 
 
 ##########################################################
