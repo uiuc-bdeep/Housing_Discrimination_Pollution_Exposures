@@ -10,7 +10,7 @@ local({r <- getOption("repos"); r["CRAN"] <- "http://cran.r-project.org"; option
 
 
 #Load Packages
-pkg<-c("survival","dplyr","doMC","rgeos","spdep","sp","stargazer", "pwr")
+pkg<-c("survival","dplyr","doMC","rgeos","spdep","sp","stargazer", "pwr","ggplot2")
 lapply(pkg, require, character.only=T)
 rm(pkg)
 
@@ -18,117 +18,152 @@ rm(pkg)
 setwd("~/Dropbox/Research/Toxic_Discrimination/")
 
 #Load Data Shared Drive
-matchedinquiries <- readRDS("/Volumes/share/projects/Trulia/stores/matchedinquiries_HOU.rds")
+matchedinquiries <- readRDS("stores/matchedinquiries_HOU.rds")
+
+ 
 
 
-### Test Heterogeneity by Gender & education_level & inquiry_order
-CS4 <- clogit( choice ~ race + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries)
-stargazer(CS4,omit="strata*",type="text")   
-summary(CS4)
-
-
-#Load shapefile with 1 mile buffers
-plants_buffer<-readRDS("stores/zipcodes_within_1_mile_plant.rds")
-plants_buffer_data<-plants_buffer@data
-plants_buffer_data<-plants_buffer_data[is.na(plants_buffer_data$ZCTA5CE10)==FALSE,]
-colnames(plants_buffer_data)[colnames(plants_buffer_data)=="ZCTA5CE10"]<-"zipcode"
-
-#Add all the relevant info from plants
-plants1<-readRDS("stores/plants_colapsed.rds")
-plants_buffer_data<-left_join(plants_buffer_data,plants1)
-
-#Keep matched inquires in zipcodes that are within 1 mile of a toxic plant
-matchedinquiries <-matchedinquiries %>% mutate(zip_near_plant=ifelse(Zip_Code%in%plants_buffer_data$zipcode,1,0))
-matchedinquiries <- matchedinquiries %>% filter(zip_near_plant==1)
-
-#Identify listings in zipcodes within 1 mile of a toxic plant
-lmat <- matchedinquiries[,c("Longitude","Latitude")]
-spdata <- SpatialPointsDataFrame(lmat,lmat)
-proj4string(spdata)<-CRS("+proj=longlat +datum=WGS84")
-plants_buffer<-spTransform(plants_buffer,CRS("+proj=longlat +datum=WGS84"))
-matchedinquiries$within_mile<-sp::over(spdata,plants_buffer)$id
-
-
-#Generate a variable that takes 1 if it is within the 1 mile buffer
-matchedinquiries<-matchedinquiries %>% mutate(toxic=ifelse(is.na(within_mile)==FALSE,1,0))
-prop.table(table(matchedinquiries$toxic,useNA = 'always'))
-with(matchedinquiries,tapply(RSEI,toxic,mean)) #higher RSEI within 1 mile
-
-############################################################
-# Slides JPAL
-############################################################
-
-#Response rates by race
-stargazer(data.frame(response.rates=with(matchedinquiries,tapply(response,race,mean))),type="text",summary=FALSE)
-
-matchedinquiries<- matchedinquiries %>% mutate(no_white=ifelse(race=="white",0,1))
-N<-dim(matchedinquiries)[1]/3
-N
-summary(lm(response~no_white,matchedinquiries))
-sigma_b<-coef(summary(lm(response~no_white,matchedinquiries)))[2,2]
-b<-coef(summary(lm(response~no_white,matchedinquiries)))[2,1]
-#d<-b/sigma_b
-
-MDE<-abs(qt(.025,1263)+qt(.1,1263))*sigma_b
-MDE
-
-power.t.test(n = , delta = b, sd=sigma_b, sig.level = .05, power = .9, type = c('paired'), alternative = c("two.sided"))
-pwr.t.test(n = , d = MDE, sig.level = .05, power = .9, type = c('paired'), alternative = c("two.sided"))
 
 ############################################################
 # proximity to TRI
 ############################################################
-stargazer(data.frame(proximity.to.tri=with(matchedinquiries[matchedinquiries$race=="white",],mean(toxic))),type="text",summary=FALSE)
 
-############################################################
-# Approach 2 use the coef of the regressions
-############################################################
+#Generate a variable that takes 1 if it is within the 1 mile buffer
+#matchedinquiries<-matchedinquiries %>% mutate(toxic=ifelse(is.na(within_mile)==FALSE,1,0))
+#with(matchedinquiries,tapply(RSEI,toxic,mean)) #higher RSEI within 1 mile
 
-############################################################
-# Approach 2a use the smallest
-############################################################
+#Generate a variable that takes 1 if it is TRInon0count >0
+matchedinquiries<- matchedinquiries %>% mutate(near_plant=ifelse(TRInon0count>0,1,0))
+prop.table(table(matchedinquiries$near_plant,useNA = 'always'))
+with(matchedinquiries,tapply(RSEI,near_plant,mean)) #higher RSEI within 1 mile
 
+matchedinquiries<- matchedinquiries %>% mutate(non_white=ifelse(race=="white",0,1))
+table(matchedinquiries$race,matchedinquiries$non_white)
+#stargazer(data.frame(proximity.to.tri=with(matchedinquiries[matchedinquiries$race=="white",],mean(toxic))),type="text",summary=FALSE)
 
-CS4 <- clogit( choice ~ race + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries)
-CS5 <- clogit( choice ~ race + toxic + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries) 
-CS6 <- clogit( choice ~ race + race:toxic + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries)
-stargazer(CS4,CS5,CS6,omit="strata*",type="text")   #CS5 drops toxic bc it's a property fixed effects model
-
-#Reorder race factor to get something that makes more sense, still won't reorder for baseline
-matchedinquiries$racereorder<-factor(matchedinquiries$race,levels(matchedinquiries$race)[c(3,2,1)])
-CS7 <- clogit( choice ~ racereorder + toxic:racereorder + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries)
-stargazer(CS4,CS5,CS6,CS7,omit="strata*",type="text")   
-
-
-d= 0.380/0.427 #coef black*toxic
-pwr.t.test(n = , d =d , sig.level = .05, power = .9, type = c('paired'), alternative = c("two.sided"))
-
-d=0.159/0.428 #coef hispanic*toxic
-pwr.t.test(n = , d = d, sig.level = .05, power = .9, type = c('paired'), alternative = c("two.sided"))
-
-
-#Separate regressions for within 1 mile and outside
-CS8<-clogit( choice ~ race  + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries %>% filter(toxic==1))
-CS9<-clogit( choice ~ race  + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries %>% filter(toxic==0))
-stargazer(CS8,CS9,omit="strata*",column.labels=c("Within 1 mile","outside 1 mile"),type="text")
-summary(CS8)
-summary(CS9)
-
-
-d=0.1028/0.4073 #min between black or hispanic within 1 mile
-pwr.t.test(n = , d = d, sig.level = .05, power = .9, type = c('paired'), alternative = c("two.sided"))
-
-
-d=0.232/0.206 #min between black or hispanic ouside 1 mile
-pwr.t.test(n = , d = d, sig.level = .05, power = .9, type = c('paired'), alternative = c("two.sided"))
 
 
 ############################################################
-# Approach 2b use non whites
+# Use non whites
 ############################################################
-CS10 <- clogit( choice ~ no_white + toxic:no_white + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries)
-stargazer(CS10,omit="strata*",type="text")   
+CS10 <- clogit( choice ~ non_white*near_plant + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries)
+summary(CS10)
 
 
-d=0.271/0.373 #interaction non white x within 1 mile
-pwr.t.test(n = , d = d, sig.level = .05, power = .9, type = c('paired'), alternative = c("two.sided"))
+############################################################
+# Simulations
+############################################################
+
+matchedinquiries$index<- matchedinquiries %>% group_indices(Address)
+
+
+set.seed(10101)
+sim<-matrix(NA,nrow=400,ncol=9)
+sim<-data.frame(sim)
+colnames(sim)<-c("coef.non_white",
+                 "odds.ratio.non_white",
+                 "se.non_white",
+                 "p.val.non_white",
+                 "coef.interaction",
+                 "odds.ratio.interaction",
+                 "se.interaction",
+                 "p.val.interaction",
+                 "N")
+
+#Subset of sample
+
+
+
+i<-1
+dta_near_plant<- matchedinquiries %>% filter(near_plant==1)
+count_near_plant<-round(dim(dta_near_plant)[1]/2)
+
+dta_far_plant<- matchedinquiries %>% filter(near_plant==0)
+count_far_plant<-round(dim(dta_far_plant)[1]/2)
+
+
+counter<-count_near_plant+count_far_plant
+
+
+#Full sample
+dta<-matchedinquiries
+CS10 <- clogit( choice ~ non_white*near_plant + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = dta)
+y<-summary(CS10)
+sim[i,1:4]<-coefficients(y)[rownames(coefficients(y))=="non_white"][-4]
+sim[i,5:8]<-coefficients(y)[rownames(coefficients(y))=="non_white:near_plant"][-4]
+sim[i,9]<-dim(dta)[1]
+rm(CS10,y,dta)
+
+
+#Increase sample
+i<-sum(!is.na(sim[,1]))+1
+Nsample<-100
+dta<-matchedinquiries
+while(counter<(2.5*dim(matchedinquiries)[1])){
+  #Sample and generates new addresses near plant
+  dta1_add<-dta_near_plant[dta_near_plant$index%in%sample(dta_near_plant$index,Nsample),] 
+  dta1_add<- dta1_add %>% mutate(rnum=rnorm(length(index)))
+  dta1_add<- dta1_add %>% group_by(Address) %>% mutate(rnum=sum(rnum)) %>% ungroup()
+  dta1_add<- dta1_add %>% group_by(Address) %>% mutate(index=index+rnum) %>% ungroup()
+  dta1_add$rnum<-NULL
+  
+  #Sample and generates new addresses far from plant
+  dta2_add<-dta_far_plant[dta_far_plant$index%in%sample(dta_far_plant$index,Nsample),] 
+  dta2_add<- dta2_add %>% mutate(rnum=rnorm(length(index)))
+  dta2_add<- dta2_add %>% group_by(Address) %>% mutate(rnum=sum(rnum)) %>% ungroup()
+  dta2_add<- dta2_add %>% group_by(Address) %>% mutate(index=index+rnum) %>% ungroup()
+  dta2_add$rnum<-NULL
+  
+  
+  
+  dta<-rbind(dta,dta1_add,dta2_add)
+  dta$index<-round(dta$index,4)
+  dta$Address<-paste0(dta$Address,"_",dta$index)
+  #table(dta$index)
+  check<- dta %>% group_by(Address) %>% summarize(n=n())
+  # table(check$n)
+  # rm(check)
+
+  CS10 <- clogit( choice ~ non_white*near_plant + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = dta)
+  y<-summary(CS10)
+  sim[i,1:4]<-coefficients(y)[rownames(coefficients(y))=="non_white"][-4]
+  sim[i,5:8]<-coefficients(y)[rownames(coefficients(y))=="non_white:near_plant"][-4]
+  sim[i,9]<-dim(dta)[1]
+  rm(CS10,y)
+  
+  counter<-dim(dta)[1] 
+  i<-i+1
+  # print(i)
+  # print("\br")
+  print(counter)
+}
+
+
+############################################################
+# Plot Power
+############################################################
+dim(matchedinquiries)[1]/3
+sim2<-na.omit(sim)
+
+
+sim_nonwhite<-sim2[,c(1:4,9)]
+sim_nonwhite$non_white<-"non white"
+sim_interaction<-sim2[,c(5:8,9)]
+sim_interaction$non_white<-"non white:near plant"
+
+colnames(sim_nonwhite)<-colnames(sim_interaction)<-c("coef","odds.ratio","se","p.val","N","group")
+
+sim3<-rbind(sim_nonwhite,sim_interaction)
+sim3$inquiries<-sim3$N/3
+
+
+
+ggplot(sim3) +
+  geom_line(aes(x=inquiries,y=p.val, group=group,col=group), position=position_jitter(w=10, h=0)) +
+  geom_hline(yintercept=c(0.05,.10), linetype="dotted") +
+  geom_vline(xintercept=c(dim(matchedinquiries)[1]/3), linetype="dotted") +
+  scale_y_continuous("P-value", breaks=seq(0,.9,.05)) +
+  scale_x_continuous("Number of Inquiries", breaks=seq(dim(matchedinquiries)[1]/3,max(sim3$inquiries),150)) +
+  theme_bw()
+
+ggsave("power_calculation_plot_only_non_white.pdf")
