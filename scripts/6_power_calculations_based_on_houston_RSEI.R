@@ -35,20 +35,34 @@ matchedinquiries <- readRDS("stores/matchedinquiries_HOU.rds")
 #Generate a variable that takes 1 if it is TRInon0count >0
 matchedinquiries<- matchedinquiries %>% mutate(near_plant=ifelse(TRInon0count>0,1,0))
 prop.table(table(matchedinquiries$near_plant,useNA = 'always'))
-with(matchedinquiries,tapply(RSEI,near_plant,mean)) #higher RSEI within 1 mile
+rsei_db<-with(matchedinquiries,tapply(RSEI,near_plant,mean)) #higher RSEI within 1 mile
+rsei_db<-rbind(rsei_db,with(matchedinquiries,tapply(RSEI,near_plant,sd)))
+coef(summary(lm(RSEI~near_plant,matchedinquiries)))[2,1]
 
-matchedinquiries<- matchedinquiries %>% mutate(non_white=ifelse(race=="white",0,1))
+rsei_db<-data.frame(rsei_db)
+colnames(rsei_db)<-c("Outside 1 mile", "Within 1 mile")
+rsei_db$diff<-NA
+rsei_db$diff[1]<-coef(summary(lm(RSEI~near_plant,matchedinquiries)))[2,1]
+rsei_db$diff[2]<-coef(summary(lm(RSEI~near_plant,matchedinquiries)))[2,2]
+
+summary(lm(RSEI~near_plant,matchedinquiries))
+rownames(rsei_db)<-c("mean","sd")
+stargazer(rsei_db,summary=FALSE,type="text")
+
+matchedinquiries<- matchedinquiries %>% mutate(non_white=ifelse(race=="white",0,1),
+                                               non_whiteRSEI=non_white*RSEI)
 table(matchedinquiries$race,matchedinquiries$non_white)
-#stargazer(data.frame(proximity.to.tri=with(matchedinquiries[matchedinquiries$race=="white",],mean(toxic))),type="text",summary=FALSE)
-
 
 
 ############################################################
 # Use non whites
 ############################################################
-CS10 <- clogit( choice ~ non_white*near_plant + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries)
+CS10 <- clogit( choice ~  non_white + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries)
 summary(CS10)
 
+CS10 <- clogit( choice ~  non_whiteRSEI + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = matchedinquiries)
+summary(CS10)
+summary(matchedinquiries$RSEI)
 
 ############################################################
 # Simulations
@@ -58,13 +72,9 @@ matchedinquiries$index<- matchedinquiries %>% group_indices(Address)
 
 
 set.seed(10101)
-sim<-matrix(NA,nrow=400,ncol=9)
+sim<-matrix(NA,nrow=400,ncol=5)
 sim<-data.frame(sim)
-colnames(sim)<-c("coef.non_white",
-                 "odds.ratio.non_white",
-                 "se.non_white",
-                 "p.val.non_white",
-                 "coef.interaction",
+colnames(sim)<-c("coef.interaction",
                  "odds.ratio.interaction",
                  "se.interaction",
                  "p.val.interaction",
@@ -87,13 +97,12 @@ counter<-count_near_plant+count_far_plant
 
 #Full sample
 dta<-matchedinquiries
-CS10 <- clogit( choice ~ non_white*near_plant + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = dta)
+CS10 <- clogit( choice ~  non_whiteRSEI + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = dta)
 y<-summary(CS10)
-sim[i,1:4]<-coefficients(y)[rownames(coefficients(y))=="non_white"][-4]
-sim[i,5:8]<-coefficients(y)[rownames(coefficients(y))=="non_white:near_plant"][-4]
-sim[i,9]<-dim(dta)[1]
+sim[i,1:4]<-coefficients(y)[rownames(coefficients(y))=="non_whiteRSEI"][-4]
+sim[i,5]<-dim(dta)[1]
 rm(CS10,y,dta)
-
+sim[i,]
 
 #Increase sample
 i<-sum(!is.na(sim[,1]))+1
@@ -120,15 +129,15 @@ while(counter<(2.5*dim(matchedinquiries)[1])){
   dta$index<-round(dta$index,4)
   dta$Address<-paste0(dta$Address,"_",dta$index)
   #table(dta$index)
-  # check<- dta %>% group_by(Address) %>% summarize(n=n())
-  # table(check$n)
+  #check<- dta %>% group_by(Address) %>% summarize(n=n())
+  #table(check$n)
   # rm(check)
 
-  CS10 <- clogit( choice ~ non_white*near_plant + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = dta)
+  CS10 <- clogit( choice ~  non_whiteRSEI + gender + education_level + as.factor(as.numeric(inquiry_order)) + strata(Address), data = dta)
   y<-summary(CS10)
-  sim[i,1:4]<-coefficients(y)[rownames(coefficients(y))=="non_white"][-4]
-  sim[i,5:8]<-coefficients(y)[rownames(coefficients(y))=="non_white:near_plant"][-4]
-  sim[i,9]<-dim(dta)[1]
+  y
+  sim[i,1:4]<-coefficients(y)[rownames(coefficients(y))=="non_whiteRSEI"][-4]
+  sim[i,5]<-dim(dta)[1]
   rm(CS10,y)
   
   counter<-dim(dta)[1] 
@@ -146,38 +155,36 @@ dim(matchedinquiries)[1]/3
 sim2<-na.omit(sim)
 
 
-sim_nonwhite<-sim2[,c(1:4,9)]
-sim_nonwhite$non_white<-"non white"
-sim_interaction<-sim2[,c(5:8,9)]
-sim_interaction$non_white<-"non white:near plant"
+colnames(sim2)<-c("coef","odds.ratio","se","p.val","N")
 
-colnames(sim_nonwhite)<-colnames(sim_interaction)<-c("coef","odds.ratio","se","p.val","N","group")
-
-sim3<-rbind(sim_nonwhite,sim_interaction)
+sim3<-rbind(sim2)
 sim3$inquiries<-sim3$N/3
 
 
 View(sim3[sim3$p.val<=0.05,])
-
+View(sim3)
 ggplot(sim3) +
-  geom_line(aes(x=inquiries,y=p.val, group=group,col=group), position=position_jitter(w=10, h=0)) +
+  geom_line(aes(x=inquiries,y=p.val), position=position_jitter(w=10, h=0)) +
   geom_hline(yintercept=c(0.05,.10), linetype="dotted") +
   geom_vline(xintercept=c(dim(matchedinquiries)[1]/3), linetype="dotted") +
   scale_y_continuous("P-value", breaks=seq(0,.9,.05)) +
   scale_x_continuous("Number of Listings", breaks=seq(dim(matchedinquiries)[1]/3,max(sim3$inquiries),150)) +
-  theme_bw()
+  ggtitle("Power Calculations Non Whites*RSEI") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) 
+  
 
-
-ggsave("views/power_calculation_only_non_white.pdf")
+ggsave("views/power_calculation_plot_only_non_white_rsei.pdf")
 
 
 
 ggplot(sim3) +
-  geom_line(aes(x=inquiries,y=odds.ratio, group=group,col=group), position=position_jitter(w=10, h=0)) +
-  scale_y_continuous("Odds ratio") +
+  geom_line(aes(x=inquiries,y=coef), position=position_jitter(w=10, h=0)) +
+  scale_y_continuous("Coefficient") +
   scale_x_continuous("Number of Listings", breaks=seq(dim(matchedinquiries)[1]/3,max(sim3$inquiries),150)) +
   geom_vline(xintercept=c(2905), linetype="dotted") +
+  ggtitle("Coef. Non white*RSEI") +
   theme_bw()
 
 
-ggsave("views/odds_ratio_only_non_white.pdf")
+ggsave("views/coef_rsei.pdf")
