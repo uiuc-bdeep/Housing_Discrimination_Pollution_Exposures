@@ -2,7 +2,7 @@
 
 Data and replication files for "Housing Discrimination and the Pollution Exposure Gap in the United States" by  [Christensen](https://peter-christensen-pe55.squarespace.com/christensen),  [Sarmiento-Barbieri](https://ignaciomsarmiento.github.io/) and  [Timmins](https://sites.duke.edu/christophertimmins/)
 
-#Abstract
+# Abstract
 
 The choice of residential location is a critical economic decision for households in the United States. Recent research has shown that neighborhood pollution exposures can have significant effects on health outcomes, disproportionately affecting minority households. In this study, we combine experimental evidence on discrimination in the rental market for housing with observational evidence from a panel detailing the movements of 1.5 million renter households to study the extent to which discrimination constrains the housing choices of minorities and contributes to inequity in health outcomes.  We find that renters with African American and Hispanic/LatinX names receive the exact same response rates to inquiries made for housing within a tight radius of plants that emit toxic pollutants (high exposure locations), while receiving up to 35% and 36% lower response rates at lower exposure locations in the same markets.  We find that African American and Hispanic/LatinX renters in these markets move into high exposure neighborhoods at higher rates and move out at lower rates than similar white households, resulting in higher exposures to toxics and particularly during periods of pregnancy.  These differences result in a 19% higher likelihood of in utero exposures to toxic emissions for children born in Hispanic/LatinX households and 16.6%  higher likelihoods for children born in African American households.
 
