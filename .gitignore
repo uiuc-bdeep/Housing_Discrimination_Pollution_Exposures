@@ -77,3 +77,7 @@ rsconnect/
 
 # End of https://www.gitignore.io/api/r,macos
 .Rproj.user
+
+# Auxiliar folder
+/stores/aux/
+
