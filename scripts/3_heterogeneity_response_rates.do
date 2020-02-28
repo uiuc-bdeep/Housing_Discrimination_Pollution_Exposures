@@ -15,53 +15,97 @@ loc quartiles 4
 
 
 ************************************************************************************************
-* Minority
-************************************************************************************************
-* Within 1 more than 1
+* Above vs Below Median Rent
 ************************************************************************************************
 
+egen quartileZIP_rent=xtile(rent), n(2) by(Zip_Code)  
 
 
-clogit choice Minority_within1  Minority_more1  ///
-					  i.order i.gender  i.education_level , group(Address)   cl(Zip_Code) level(90) 
+forvalues i = 1/2{
+	gen rent_dec`i'=(quartileZIP_rent==`i')
+}
+
+forvalues i = 2/`quartiles'{
+	forvalues j = 1/2{
+		gen Minority_dec`i'_rent_dec`j'=Minority*dec`i'*rent_dec`j'
+	}
+}
 
 
-matrix define B=J(2,5,.)
 
-	matrix B[1,1] =  _b[Minority_within1] - invttail(e(N),0.05)*_se[Minority_within1]
-	matrix B[1,2] =  _b[Minority_within1]
-	matrix B[1,3] =  _b[Minority_within1] + invttail(e(N),0.05)*_se[Minority_within1]
+clogit choice Minority_dec2_rent_dec1  Minority_dec3_rent_dec1  Minority_dec4_rent_dec1 ///
+			  Minority_dec2_rent_dec2  Minority_dec3_rent_dec2  Minority_dec4_rent_dec2 ///
+			 i.gender i.order  i.education_level , group(Address)  cl(Zip_Code) level(90) or
 
+
+
+
+matrix define B=J(`quartiles'-1,5,.)
+
+forvalues j = 2/`quartiles'{
+	loc i=	`j'-1
+	matrix B[`i',1] = _b[Minority_dec`j'_rent_dec1] - invttail(e(N),0.05)*_se[Minority_dec`j'_rent_dec1]
+	matrix B[`i',2] = _b[Minority_dec`j'_rent_dec1]
+	matrix B[`i',3] = _b[Minority_dec`j'_rent_dec1] + invttail(e(N),0.05)*_se[Minority_dec`j'_rent_dec1]
+
+	*sum Minority_dec`j'_rent_dec1
+	*matrix B[`i',4]=`r(sum)'
+	sum Minority if dec`j'==1
+	matrix B[`i',4]=`r(N)'
+	sum choice if White==1 &  dec`j'==1
+	matrix B[`i',5]=`r(mean)'
+
+	mat list B
 	
+}
 
-	matrix B[2,1] =  _b[Minority_more1] - invttail(e(N),0.05)*_se[Minority_more1]
-	matrix B[2,2] =  _b[Minority_more1]
-	matrix B[2,3] =  _b[Minority_more1] + invttail(e(N),0.05)*_se[Minority_more1]
 
+*--------------------------------------------------------------------
+preserve
+clear
+svmat B
+gen n=_n
+replace B1=exp(B1)
+replace B2=exp(B2)
+replace B3=exp(B3)
+
+
+rename B1 lci
+rename B2 or
+rename B3 uci
+
+rename n deciles
+
+
+save "stores/aux/interquartile_toxconc_minority_rent_low.dta", replace
+restore
+*--------------------------------------------------------------------
+
+
+
+
+matrix define B=J(`quartiles'-1,5,.)
+
+forvalues j = 2/`quartiles'{
+	loc i=	`j'-1
+	matrix B[`i',1] = _b[Minority_dec`j'_rent_dec2] - invttail(e(N),0.05)*_se[Minority_dec`j'_rent_dec2]
+	matrix B[`i',2] = _b[Minority_dec`j'_rent_dec2]
+	matrix B[`i',3] = _b[Minority_dec`j'_rent_dec2] + invttail(e(N),0.05)*_se[Minority_dec`j'_rent_dec2]
+
+	*sum Minority_dec`j'_rent_dec2
+	*matrix B[`i',4]=`r(sum)'
+	sum Minority if dec`j'==1
+	matrix B[`i',4]=`r(N)'
+	sum choice if White==1 &  dec`j'==1
+	matrix B[`i',5]=`r(mean)'
 	
 	
-
-
-	sum Minority if within1==1
-	matrix B[1,4]=`r(N)'
-
-	sum Minority if more1==1
-	matrix B[2,4]=`r(N)'
+	mat list B
 	
-
-	sum choice if White==1 &  within1==1
-	matrix B[1,5]=`r(mean)'
-
-	sum choice if White==1 &  more1==1
-	matrix B[2,5]=`r(mean)'
-mat list B	
+}
 
 
-
-
-************************************************************************************************
-* Matrix to dta
-************************************************************************************************
+*--------------------------------------------------------------------
 preserve
 clear
 svmat B
@@ -75,84 +119,69 @@ replace B3=exp(B3)
 rename B1 lci
 rename B2 or
 rename B3 uci
-rename B4 obs
-rename B5 c_mean
-rename n distance
+
+rename n deciles
 
 
-save "stores/aux/distance_minority.dta"	, replace
+save "stores/aux/interquartile_toxconc_minority_rent_high.dta", replace
 restore
+*--------------------------------------------------------------------
+
 
 ************************************************************************************************
-* African American vs Hispanic/LatinX
+* Demographinc Composition, Above vs Below Minority Shares
 ************************************************************************************************
-* Within 1 more than 1
-************************************************************************************************
+gen minorityshare=blackshare+hispanicshare 
+egen quartileZIP_minority_share=xtile(minorityshare), n(2) by(Zip_Code)  
 
-clogit choice Hispanic_within1  Hispanic_more1  ///
-					  Black_within1  Black_more1  ///
-					  i.order i.gender  i.education_level , group(Address)   cl(Zip_Code) level(90) 
+mean minorityshare, over(quartileZIP_minority_share)
 
-matrix define H=J(2,5,.)
+*Decile 1 Low share of minority
+*Decile 2 High share of minority
 
-	matrix H[1,1] =  _b[Hispanic_within1] - invttail(e(N),0.05)*_se[Hispanic_within1]
-	matrix H[1,2] =  _b[Hispanic_within1]
-	matrix H[1,3] =  _b[Hispanic_within1] + invttail(e(N),0.05)*_se[Hispanic_within1]
+forvalues i = 1/2{
+	gen w_share_dec`i'=(quartileZIP_minority_share==`i')
+}
 
-	matrix H[2,1] =  _b[Hispanic_more1] - invttail(e(N),0.05)*_se[Hispanic_more1]
-	matrix H[2,2] =  _b[Hispanic_more1]
-	matrix H[2,3] =  _b[Hispanic_more1] + invttail(e(N),0.05)*_se[Hispanic_more1]
+
+forvalues i = 2/`quartiles'{
+	forvalues j = 1/2{
+		gen Minority_dec`i'_w_share_dec`j'=Minority*dec`i'*w_share_dec`j'
+	}
+}
+
+
+
+clogit choice Minority_dec2_w_share_dec1  Minority_dec3_w_share_dec1  Minority_dec4_w_share_dec1 ///
+			  Minority_dec2_w_share_dec2  Minority_dec3_w_share_dec2  Minority_dec4_w_share_dec2 ///
+			 i.gender i.order  i.education_level , group(Address)  cl(Zip_Code) level(90) or
+
+
+
+*Decile 1 Low share of minority
+
+
+matrix define B=J(`quartiles'-1,5,.)
+
+forvalues j = 2/`quartiles'{
+	loc i=	`j'-1
+	matrix B[`i',1] = _b[Minority_dec`j'_w_share_dec1] - invttail(e(N),0.05)*_se[Minority_dec`j'_w_share_dec1]
+	matrix B[`i',2] = _b[Minority_dec`j'_w_share_dec1]
+	matrix B[`i',3] = _b[Minority_dec`j'_w_share_dec1] + invttail(e(N),0.05)*_se[Minority_dec`j'_w_share_dec1]
+
+	*sum Minority_dec`j'_w_share_dec1
+	*matrix B[`i',4]=`r(sum)'
+	sum Minority if dec`j'==1
+	matrix B[`i',4]=`r(N)'
+	sum choice if White==1 &  dec`j'==1
+	matrix B[`i',5]=`r(mean)'
 	
+	mat list B
 	
-	sum Hispanic if within1==1
-	matrix H[1,4]=`r(N)'
-
-	sum Hispanic if more1 ==1
-	matrix H[2,4]=`r(N)'
-	mat list H
-
-	sum choice if White==1 &  within1==1
-	matrix H[1,5]=`r(mean)'
-
-	sum choice if White==1 &  more1==1
-	matrix H[2,5]=`r(mean)'
-	mat list H
+}
 
 
-
-
-
-
-matrix define B=J(2,5,.)
-	matrix B[1,1] =  _b[Black_within1] - invttail(e(N),0.05)*_se[Black_within1]
-	matrix B[1,2] =  _b[Black_within1]
-	matrix B[1,3] =  _b[Black_within1] + invttail(e(N),0.05)*_se[Black_within1]
-
-	matrix B[2,1] =  _b[Black_more1] - invttail(e(N),0.05)*_se[Black_more1]
-	matrix B[2,2] =  _b[Black_more1]
-	matrix B[2,3] =  _b[Black_more1] + invttail(e(N),0.05)*_se[Black_more1]
-	mat list B	
-
-	sum Black if within1==1
-	matrix B[1,4]=`r(N)'
-
-	sum Black if more1==1
-	matrix B[2,4]=`r(N)'
-	mat list B
-
-	sum choice if White==1 &  within1==1
-	matrix B[1,5]=`r(mean)'
-
-	sum choice if White==1 &  more1==1
-	matrix B[2,5]=`r(mean)'
-	mat list B
-
-
-
-
-************************************************************************************************
-* Matrix to dta
-************************************************************************************************
+*--------------------------------------------------------------------
 preserve
 clear
 svmat B
@@ -166,48 +195,114 @@ replace B3=exp(B3)
 rename B1 lci
 rename B2 or
 rename B3 uci
-rename B4 obs
-rename B5 c_mean
-rename n distance
+
+rename n deciles
 
 
-
-save "stores/aux/distance_race_black.dta"	, replace
+save "stores/aux/interquartile_toxconc_minority_w_share_low.dta", replace
 restore
+*--------------------------------------------------------------------
 
+*Decile 2 High share of minority
+
+matrix define B=J(`quartiles'-1,5,.)
+
+forvalues j = 2/`quartiles'{
+	loc i=	`j'-1
+	matrix B[`i',1] = _b[Minority_dec`j'_w_share_dec2] - invttail(e(N),0.05)*_se[Minority_dec`j'_w_share_dec2]
+	matrix B[`i',2] = _b[Minority_dec`j'_w_share_dec2]
+	matrix B[`i',3] = _b[Minority_dec`j'_w_share_dec2] + invttail(e(N),0.05)*_se[Minority_dec`j'_w_share_dec2]
+
+	*sum Minority_dec`j'_w_share_dec2
+	*matrix B[`i',4]=`r(sum)'
+	sum Minority if dec`j'==1
+	matrix B[`i',4]=`r(N)'
+	sum choice if White==1 &  dec`j'==1
+	matrix B[`i',5]=`r(mean)'
+
+	mat list B
+	
+}
+
+
+*--------------------------------------------------------------------
 preserve
 clear
-svmat H
+svmat B
 gen n=_n
-replace H1=exp(H1)
-replace H2=exp(H2)
-replace H3=exp(H3)
+replace B1=exp(B1)
+replace B2=exp(B2)
+replace B3=exp(B3)
 
 
 
-rename H1 lci
-rename H2 or
-rename H3 uci
-rename H4 obs
-rename H5 c_mean
-rename n distance
+rename B1 lci
+rename B2 or
+rename B3 uci
+
+rename n deciles
 
 
-
-save "stores/aux/distance_race_Hispanic.dta"	, replace
+save "stores/aux/interquartile_toxconc_minority_w_share_high.dta", replace
 restore
 
 
-clogit choice Hispanic_within1  Hispanic_more1  ///
-					  Black_within1  Black_more1  ///
-					  i.order i.gender  i.education_level , group(Address) or  cl(Zip_Code) level(90)
+************************************************************************************************
+* Matched Sample
+************************************************************************************************/
 
 
 
 
+use "stores/toxic_discrimination_matched_data2.dta", clear
+
+encode inquiry_order, gen(order)
+
+loc quartiles 4
+
+
+clogit choice Minority_dec2 Minority_dec3 Minority_dec4  ///
+			   i.gender i.education_level i.order   , group(Address)  cl(Zip_Code) level(90) or
 
 
 
 
+matrix define B=J(`quartiles'-1,5,.)
+
+forvalues j = 2/`quartiles'{
+	loc i=	`j'-1
+	matrix B[`i',1] = _b[Minority_dec`j'] - invttail(e(N),0.05)*_se[Minority_dec`j']
+	matrix B[`i',2] = _b[Minority_dec`j']
+	matrix B[`i',3] = _b[Minority_dec`j'] + invttail(e(N),0.05)*_se[Minority_dec`j']
+
+	sum Minority if dec`j'==1
+	matrix B[`i',4]=`r(N)'
+	sum choice if White==1 &  dec`j'==1
+	matrix B[`i',5]=`r(mean)'
+	
+	
+}
+mat list B
+
+*--------------------------------------------------------------------
+preserve
+clear
+svmat B
+gen n=_n
+replace B1=exp(B1)
+replace B2=exp(B2)
+replace B3=exp(B3)
+
+
+rename B1 lci
+rename B2 or
+rename B3 uci
+
+
+rename n deciles
+
+
+save "stores/aux/interquartile_toxconc_minority_matched.dta", replace
+restore
 
 *end
