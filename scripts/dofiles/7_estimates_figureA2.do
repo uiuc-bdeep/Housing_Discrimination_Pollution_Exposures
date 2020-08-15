@@ -6,14 +6,12 @@ Replication files for "Housing Discrimination and the Pollution Exposure Gap in 
 clear all
 set matsize 11000
 
-use "stores/toxic_discrimination_data.dta"
+use "../stores/toxic_discrimination_data.dta"
 
-
-keep if sample==1
 
 loc quartiles 4
 
-
+set seed 1010101
 ************************************************************************************************
 * Minority
 ************************************************************************************************
@@ -21,22 +19,27 @@ loc quartiles 4
 ************************************************************************************************
 
 
+disc_boot choice Minority_within1  Minority_more1   , varlist(i.gender i.education_level i.order)
+mat def b=e(b)
+mat def V=e(V)
 
-clogit choice Minority_within1  Minority_more1  ///
-					  i.order i.gender  i.education_level , group(Address)   cl(Zip_Code) level(90) 
 
+
+mat def R=J(2,3,.)
+
+forvalues i= 1/2{
+	mat R[`i',1]=b[1,`i']
+	mat R[`i',2]=V[`i',`i']
+	mat R[`i',3]=e(df_`i')
+	}
 
 matrix define B=J(2,5,.)
 
-	matrix B[1,1] =  _b[Minority_within1] - invttail(e(N),0.05)*_se[Minority_within1]
-	matrix B[1,2] =  _b[Minority_within1]
-	matrix B[1,3] =  _b[Minority_within1] + invttail(e(N),0.05)*_se[Minority_within1]
-
-	
-
-	matrix B[2,1] =  _b[Minority_more1] - invttail(e(N),0.05)*_se[Minority_more1]
-	matrix B[2,2] =  _b[Minority_more1]
-	matrix B[2,3] =  _b[Minority_more1] + invttail(e(N),0.05)*_se[Minority_more1]
+forvalues i= 1/2{
+	matrix B[`i',1] =  R[`i',1] - invttail(R[`i',3],0.05)*sqrt(R[`i',2])
+	matrix B[`i',2] =  R[`i',1] 
+	matrix B[`i',3] =  R[`i',1] + invttail(R[`i',3],0.05)*sqrt(R[`i',2])
+}
 
 	
 	
@@ -80,7 +83,7 @@ rename B5 c_mean
 rename n distance
 
 
-save "stores/aux/distance_minority.dta"	, replace
+save "../stores/aux/distance_minority_full_set_bootcl.dta"	, replace
 restore
 
 ************************************************************************************************
@@ -88,22 +91,30 @@ restore
 ************************************************************************************************
 * Within 1 more than 1
 ************************************************************************************************
+disc_boot choice  Hispanic_within1  Hispanic_more1  ///
+					  Black_within1  Black_more1   , varlist(i.gender i.education_level i.order)
 
-clogit choice Hispanic_within1  Hispanic_more1  ///
-					  Black_within1  Black_more1  ///
-					  i.order i.gender  i.education_level , group(Address)   cl(Zip_Code) level(90) 
+mat def b=e(b)
+mat def V=e(V)
+
+
+
+mat def R=J(4,3,.)
+
+forvalues i= 1/4{
+	mat R[`i',1]=b[1,`i']
+	mat R[`i',2]=V[`i',`i']
+	mat R[`i',3]=e(df_`i')
+	}
+
 
 matrix define H=J(2,5,.)
+forvalues i= 1/2{
+	matrix H[`i',1] =  R[`i',1] - invttail(R[`i',3],0.05)*sqrt(R[`i',2])
+	matrix H[`i',2] =  R[`i',1] 
+	matrix H[`i',3] =  R[`i',1] + invttail(R[`i',3],0.05)*sqrt(R[`i',2])
+}
 
-	matrix H[1,1] =  _b[Hispanic_within1] - invttail(e(N),0.05)*_se[Hispanic_within1]
-	matrix H[1,2] =  _b[Hispanic_within1]
-	matrix H[1,3] =  _b[Hispanic_within1] + invttail(e(N),0.05)*_se[Hispanic_within1]
-
-	matrix H[2,1] =  _b[Hispanic_more1] - invttail(e(N),0.05)*_se[Hispanic_more1]
-	matrix H[2,2] =  _b[Hispanic_more1]
-	matrix H[2,3] =  _b[Hispanic_more1] + invttail(e(N),0.05)*_se[Hispanic_more1]
-	
-	
 	sum Hispanic if within1==1
 	matrix H[1,4]=`r(N)'
 
@@ -119,19 +130,14 @@ matrix define H=J(2,5,.)
 	mat list H
 
 
-
-
-
-
 matrix define B=J(2,5,.)
-	matrix B[1,1] =  _b[Black_within1] - invttail(e(N),0.05)*_se[Black_within1]
-	matrix B[1,2] =  _b[Black_within1]
-	matrix B[1,3] =  _b[Black_within1] + invttail(e(N),0.05)*_se[Black_within1]
 
-	matrix B[2,1] =  _b[Black_more1] - invttail(e(N),0.05)*_se[Black_more1]
-	matrix B[2,2] =  _b[Black_more1]
-	matrix B[2,3] =  _b[Black_more1] + invttail(e(N),0.05)*_se[Black_more1]
-	mat list B	
+forvalues i= 1/2{
+	matrix B[`i',1] =  R[`i'+2,1] - invttail(R[`i'+2,3],0.05)*sqrt(R[`i'+2,2])
+	matrix B[`i',2] =  R[`i'+2,1] 
+	matrix B[`i',3] =  R[`i'+2,1] + invttail(R[`i'+2,3],0.05)*sqrt(R[`i'+2,2])
+}
+
 
 	sum Black if within1==1
 	matrix B[1,4]=`r(N)'
@@ -172,7 +178,7 @@ rename n distance
 
 
 
-save "stores/aux/distance_race_black.dta"	, replace
+save "../stores/aux/distance_race_afam_full_set_bootcl.dta"	, replace
 restore
 
 preserve
@@ -194,15 +200,13 @@ rename n distance
 
 
 
-save "stores/aux/distance_race_Hispanic.dta"	, replace
+save "../stores/aux/distance_race_hispanic_full_set_bootcl.dta"	, replace
 restore
 
 
 clogit choice Hispanic_within1  Hispanic_more1  ///
 					  Black_within1  Black_more1  ///
 					  i.order i.gender  i.education_level , group(Address) or  cl(Zip_Code) level(90)
-
-
 
 
 
