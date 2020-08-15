@@ -10,12 +10,12 @@ local({r <- getOption("repos"); r["CRAN"] <- "http://cran.r-project.org"; option
 
 
 #Load Packages
-pkg<-c("haven","ggplot2","ggthemes","stringr","lubridate")
+pkg<-c("haven","dplyr","ggplot2","ggthemes","stringr","lubridate")
 lapply(pkg, require, character.only=T)
 rm(pkg)
 
 
-dta3<-read_dta("stores/toxic_discrimination_data.dta")
+dta3<-read_dta("../stores/toxic_discrimination_data.dta")
 
 dta3<-dta3 %>% filter(sample==1)
 dta3$timestamp_response_received<-as.character(dta3$timestamp_response_received)
@@ -30,7 +30,7 @@ dta3$date2<-mdy_hm(dta3$date)
 dta3$response_days<-dta3$response_time-dta3$date2
 
 
-View(dta3 %>% select(date,timestamp_inquiry_sent_out,timestamp_response_received,date2,response_time,response_days))
+
 # dta3$response_days<-dta3$response_days/60
 # dta3$response_days<-dta3$response_days/24
 summary(dta3$response_days)
@@ -38,7 +38,7 @@ summary(dta3$response_days)
 dta3$response_days<-as.numeric(dta3$response_days,units="days")
 
 
-name_output<-"response_days"
+name_output<-"../views/response_days"
 ht<-4
 wd<-6
 #table(dta$Zip_Code)
@@ -46,15 +46,15 @@ wd<-6
 colors <- tibble::deframe(ggthemes::ggthemes_data[["fivethirtyeight"]])
 base_size = 4
 base_family = "sans"
-require(grid)
+#require(grid)
 
-x<-dta3 %>% filter(response_days<0)
-y<-dta3 %>% filter(response_days>=8)
-z<- dta3 %>% filter(!is.na(response_days))
-summary(y$response_days)
-(dim(x)[1]+dim(y)[1])/dim(z)[1]
-dim(x)[1]/dim(z)[1]
-dim(y)[1]/dim(z)[1]
+# x<-dta3 %>% filter(response_days<0)
+# y<-dta3 %>% filter(response_days>=8)
+# z<- dta3 %>% filter(!is.na(response_days))
+# summary(y$response_days)
+# (dim(x)[1]+dim(y)[1])/dim(z)[1]
+# dim(x)[1]/dim(z)[1]
+# dim(y)[1]/dim(z)[1]
 dta4<-dta3 %>% filter(response_days>=0,response_days<8)
 dta4 <- dta4 %>% mutate(hours=ifelse(response_days<=0.3,1,0),
                         day=ifelse(response_days<=1,1,0),
@@ -80,4 +80,4 @@ ggplot(dta4,aes(x=response_days)) +
         axis.text.x =element_text( angle=0),
         rect = element_rect(colour = "transparent", fill = "white"),
         axis.title = element_text(), plot.margin = unit(c(2,2,1,1), "lines"))
-ggsave(filename=paste0(name_output,".png"), height = ht, width = wd)
+#ggsave(filename=paste0(name_output,".png"), height = ht, width = wd)
