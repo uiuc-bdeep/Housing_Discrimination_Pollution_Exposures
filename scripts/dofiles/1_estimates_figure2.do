@@ -25,7 +25,7 @@ gen RSEI_25_75=(quartileZIP_property==2 |quartileZIP_property==3)
 gen RSEI_75=(quartileZIP_property==4)
 
 
-xtset ZIP			 
+xtset Zip_Code			 
 
 matrix define H=J(9,2,0)
 
@@ -51,8 +51,6 @@ matrix H[9,2] =_se[RSEI_75]
 
 
 
-
-mat list H
 
 
 preserve
