@@ -80,4 +80,6 @@ rsconnect/
 
 # Auxiliar folder
 /stores/aux/
+/stores/zipcodes/
 /views/
+.log

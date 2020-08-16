@@ -11,30 +11,54 @@ Evidence from the Rental Market  by Peter Christensen, Ignacio Sarmiento-Barbier
 echo "**********************************************************************************************************"
 mkdir ../stores/aux
 
+# Main Figures 
 echo "*" &&
-# Start of files
-stata-mp  -b dofiles/3_estimates_figure3.do &&
-stata-mp  -b dofiles/4_estimates_figure4.do &&
-stata-mp  -b dofiles/5_estimates_figure5.do &&
+
+
+
+stata-mp  -b dofiles/1_estimates_figure2.do  &&
+stata-mp  -b dofiles/2_estimates_figure3.do  &&
+stata-mp  -b dofiles/3_estimates_figure4.do  &&
+stata-mp  -b dofiles/4_estimates_figure5.do  &&
 
 echo "**" &&
-stata-mp  -b dofiles/6_estimates_figureA1.do &&
-stata-mp  -b dofiles/7_estimates_figureA2.do &&
+R CMD BATCH Rscripts/1_Figure_1a.R 			 &&
+R CMD BATCH Rscripts/2_Figure_2.R            &&
+
+R CMD BATCH Rscripts/3_Figures_Odds.R	     &&
+
+
 
 echo "***" &&
-R CMD BATCH Rscripts/Figures.R	 &&
+stata-mp  -b dofiles/5_estimates_figureA1.do &&
+stata-mp  -b dofiles/6_estimates_figureA2.do &&
+
+R CMD BATCH Rscripts/4_Figures_Odds_App.R	 &&
+
 
 echo "****" &&
-stata-mp  -b dofiles/9_table_A4.do &&
-stata-mp  -b dofiles/10_table_A5.do &&
-
+stata-mp  -b dofiles/7_Table_A2.do           &&
+stata-mp  -b dofiles/8_Table_A4.do           &&
+stata-mp  -b dofiles/9_table_A5.do           &&
+stata-mp  -b dofiles/10_Table_A5.do          &&
+stata-mp  -b dofiles/11_Table_A6.do          &&
+stata-mp  -b dofiles/12_Table_A7.do          &&
+stata-mp  -b dofiles/13_Table_A8.do          &&
+stata-mp  -b dofiles/14_Table_A9.do          &&
+stata-mp  -b dofiles/15_Table_A10.do         &&
+stata-mp  -b dofiles/16_Table_A11.do         &&
+stata-mp  -b dofiles/17_Table_A12.do         &&
 
 echo "*****" &&
+R CMD BATCH Rscripts/5_Figure_A4.R           &&
+R CMD BATCH Rscripts/6_Figure_A5.R           &&
+R CMD BATCH Rscripts/7_Table10.R             &&
 
+echo "******" &&
 rm -rf ../stores/aux &&
 rm *.Rout &&
 rm *.log &&
-#rm *.pdf &&
+rm *.pdf &&
 
 
 echo "**********************************************************************************************************"
