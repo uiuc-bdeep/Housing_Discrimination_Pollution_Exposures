@@ -205,7 +205,7 @@ esttab modelMale
       \end{tabular} 
 
       \begin{tablenotes}[scriptsize,flushleft] \scriptsize
-      \item Notes: Table reports balance statistics for the experimental data set. It shows the coefficients of logistic regression on different outcomes. In Panel A, the dependent variable takes 1 or 0 depending the order in which the inquiry was sent out, i.e. in Column (1) takes 1 if the inquiry was sent first and 0 otherwise. In Panel B, takes 1 or 0 depending the weekday the inquiry was sent. Panel C, does the same for male and females, and levels of maternal education. Standard errors are clustered at the ZIP code level using a score wild bootstrap proposed \cite{kline2012score} to account for the small number of clusters. *\$P< 10\%$ level, **\$P < 5\%$ level, ***\$P<1\%$ level.
+      \item Notes: 
       \end{tablenotes}
       \end{threeparttable}
       \end{table}

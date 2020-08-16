@@ -131,7 +131,7 @@ esttab model1
 \hline \\[-1.8ex] 
 \end{tabular} 
 \begin{tablenotes}[scriptsize,flushleft] \scriptsize
-\item Notes: Table reports odd ratios from a within-property conditional logit model including controls for gender, education and order the inquiry was sent. Standard errors clustered at the census tract level. 90\% confidence intervals reported in parentheses.*\$P< 10\%$ level, **\$P < 5\%$ level, ***\$P<1\%$ level.
+\item Notes: 
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

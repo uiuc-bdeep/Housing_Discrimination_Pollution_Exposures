@@ -168,7 +168,7 @@ esttab modelB1
 \hline \\[-1.8ex]
 \end{tabular}
 \begin{tablenotes}[scriptsize,flushleft] \scriptsize
-\item Notes:  Notes: Table reports odds ratios from a within-property conditional logit regression for the full sample and excluding computer-generated responses. Column (1) reports results for the full sample. Column (2) excludes 362 listings that responded with computer-automated responses.  Panel A shows odds ratio of minority names relative to White names. Panel B separates minority names into African American and Hispanic/LatinX names.   Standard errors clustered at Zip Code level. 90\% Confidence Intervals reported in parentheses.*\$P< 10\%$ level, **\$P < 5\%$ level, ***\$P<1\%$ level.
+\item Notes:  
 \end{tablenotes} 
 \end{threeparttable}
 \end{table})

@@ -212,7 +212,7 @@ esttab modelB21
 				\hline \\[-1.8ex]
 				\end{tabular}
 				\begin{tablenotes}[scriptsize,flushleft] \scriptsize
-				\item Notes: Table reports odd ratios from a logistic regressions with columns referring to the order in which inquiries were sent out. Panel A reports results based on the percentile of within-zip toxic concentration. Panel A.1. reports odd ratios of minority names relative to White names. Panel A.2. separates minority names into African American and Hispanic/LatinX names.  Panel B reports results based on distance to closest TRI plant. Panel B.1 reports odd ratio of minority names relative to White, and Panel B.2. separates minority into African American and Hispanic/LatinX names. Standard errors clustered at Zip Code level. 90\% Confidence Intervals reported in parentheses.*\$P< 10\%$ level, **\$P < 5\%$ level, ***\$P<1\%$ level.
+				\item Notes: 
 				\end{tablenotes} 
 				\end{threeparttable}
 				\end{table})

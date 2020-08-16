@@ -111,7 +111,7 @@ esttab model1
 \end{tabular} 
 
 \begin{tablenotes}[scriptsize,flushleft] \scriptsize
-\item Notes: Table reports odds ratios from a within-property conditional logit with controls for gender, education and inquiry order. 90\% Confidence Intervals reported in parentheses.*\$P< 10\%$ level, **\$P < 5\%$ level, ***\$P<1\%$ level.
+\item Notes: 
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

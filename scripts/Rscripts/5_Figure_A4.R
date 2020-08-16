@@ -65,6 +65,6 @@ p<-ggplot(dta,aes(x=dist)) +
 
 p
 grid.text(unit(0.98,"npc"),gp=gpar(fontsize=11,fontfamily=base_family),0.5,label = "Percentile of Within-Zip Toxic Concentration", rot = 270) # right
-ggsave("../views/figa4.png", width=10, height=5)
+ggsave("../views/figA4.png", width=10, height=5)
 #has to be saved manually with export, and parameters width=1000, height=410 in order for the grid.text to appear
 

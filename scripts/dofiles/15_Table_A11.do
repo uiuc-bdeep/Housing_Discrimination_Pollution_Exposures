@@ -160,7 +160,7 @@ esttab model1
 \hline \\[-1.8ex]
 \end{tabular}
 \begin{tablenotes}[scriptsize,flushleft] \scriptsize
-\item Notes: Table reports odds ratios from a within-property conditional logit by percentile of within-zip toxic concentration and for different levels of maternal education. Column (1) reports the odd ratio for minority names relative to white names. Column (2) separates minority names into African American and Hispanic/LatinX names. Standard errors clustered at Zip Code level. 90\% Confidence Intervals reported in parentheses.*\$P< 10\%$ level, **\$P < 5\%$ level, ***\$P<1\%$ level.
+\item Notes:
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
