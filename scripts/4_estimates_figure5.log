@@ -1,0 +1,938 @@
+
+  ___  ____  ____  ____  ____ (R)
+ /__    /   ____/   /   ____/
+___/   /   /___/   /   /___/   15.1   Copyright 1985-2017 StataCorp LLC
+  Statistics/Data Analysis            StataCorp
+                                      4905 Lakeway Drive
+     MP - Parallel Edition            College Station, Texas 77845 USA
+                                      800-STATA-PC        http://www.stata.com
+                                      979-696-4600        stata@stata.com
+                                      979-696-4601 (fax)
+
+32-user 64-core Stata network perpetual license:
+       Serial number:  501506200495
+         Licensed to:  Harvard-MIT Data Center
+                       Cambridge, MA
+
+Notes:
+      1.  Stata is running in batch mode.
+      2.  Unicode is supported; see help unicode_advice.
+      3.  More than 2 billion observations are allowed; see help obs_advice.
+      4.  Maximum number of variables is set to 5000; see help set_maxvar.
+
+. do "dofiles/4_estimates_figure5.do" 
+
+. /*
+> Replication files for "Housing Discrimination and the Pollution Exposure Gap 
+> in the United States" 
+> */
+. 
+. 
+. clear all
+
+. set matsize 11000
+
+. 
+. use "../stores/toxic_discrimination_data.dta"
+
+. 
+. 
+. keep if sample==1
+(801 observations deleted)
+
+. 
+. loc quartiles 4
+
+. 
+. set seed 1010101
+
+. *****************************************************************************
+> *******************
+. * Above vs Below Median Rent
+. *****************************************************************************
+> *******************
+. 
+. egen quartileZIP_rent=xtile(rent), n(2) by(Zip_Code)  
+(28 missing values generated)
+
+. 
+. 
+. forvalues i = 1/2{
+  2.         gen rent_dec`i'=(quartileZIP_rent==`i')
+  3. }
+
+. 
+. forvalues i = 2/`quartiles'{
+  2.         forvalues j = 1/2{
+  3.                 gen Minority_dec`i'_rent_dec`j'=Minority*dec`i'*rent_dec`j
+> '
+  4.         }
+  5. }
+
+. 
+. 
+. 
+. disc_boot choice  Minority_dec2_rent_dec1  Minority_dec3_rent_dec1  Minority_
+> dec4_rent_dec1 ///
+>                           Minority_dec2_rent_dec2  Minority_dec3_rent_dec2  M
+> inority_dec4_rent_dec2 ///
+>                                           , varlist(i.gender i.education_leve
+> l i.order)
+note: multiple positive outcomes within groups encountered.
+note: 1,331 groups (4,026 obs) dropped because of all positive or
+      all negative outcomes.
+
+Iteration 0:   log pseudolikelihood = -934.36689  
+Iteration 1:   log pseudolikelihood = -923.62639  
+Iteration 2:   log pseudolikelihood = -923.60115  
+Iteration 3:   log pseudolikelihood = -923.60115  
+
+Conditional (fixed-effects) logistic regression
+
+                                                Number of obs     =      2,755
+                                                Wald chi2(11)     =    1901.93
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -923.60115               Pseudo R2         =     0.0856
+
+                              (Std. Err. adjusted for 14 clusters in Zip_Code)
+------------------------------------------------------------------------------
+             |               Robust
+      choice |      Coef.   Std. Err.      z    P>|z|     [90% Conf. Interval]
+-------------+----------------------------------------------------------------
+~2_rent_dec1 |  -.3311382   .2583666    -1.28   0.200    -.7561133     .093837
+~3_rent_dec1 |   -.442811    .151573    -2.92   0.003    -.6921265   -.1934956
+~4_rent_dec1 |   .3253362   .1115135     2.92   0.004     .1419128    .5087596
+~2_rent_dec2 |   -.645276   .1279175    -5.04   0.000    -.8556817   -.4348704
+~3_rent_dec2 |  -.2566266   .1966632    -1.30   0.192    -.5801089    .0668557
+~4_rent_dec2 |  -.0408883   .2422969    -0.17   0.866    -.4394312    .3576546
+             |
+      gender |
+       male  |  -.3214531   .0918751    -3.50   0.000    -.4725742    -.170332
+             |
+education_~l |
+        low  |  -.1615875   .1200929    -1.35   0.178    -.3591227    .0359477
+     medium  |  -.3021065    .137428    -2.20   0.028    -.5281554   -.0760576
+             |
+       order |
+          2  |  -.3354865    .244823    -1.37   0.171    -.7381845    .0672114
+          3  |  -.9064391   .2005286    -4.52   0.000    -1.236279   -.5765989
+------------------------------------------------------------------------------
+cluster(Zip_Code)Zip_Codecluster(Zip_Code)Zip_Codecluster(Zip_Code)Zip_Codeclus
+> ter(Zip_Code)Zip_Codecluster(Zip_Code)Zip_Codecluster(Zip_Code)Zip_Code
+
+Bootstrap Corrected Estimates
+------------------------------------------------------------------------------
+             |      Coef.   Std. Err.      t    P>|t|     [90% Conf. Interval]
+-------------+----------------------------------------------------------------
+~2_rent_dec1 |  -.3311382   .2403072    -1.38   0.191    -.7567062    .0944299
+~3_rent_dec1 |   -.442811    .149972    -2.95   0.011    -.7084015   -.1772206
+~4_rent_dec1 |   .3253362   .1246252     2.61   0.022     .1046332    .5460391
+~2_rent_dec2 |   -.645276   .1662109    -3.88   0.002    -.9396245   -.3509276
+~3_rent_dec2 |  -.2566266   .1975206    -1.30   0.216    -.6064224    .0931692
+~4_rent_dec2 |  -.0408883   .2420961    -0.17   0.868    -.4696244    .3878478
+------------------------------------------------------------------------------
+
+. 
+. mat def b=e(b)
+
+. mat def V=e(V)
+
+. *Matrices for boottest estimates
+. *Low Rent
+. mat def L_R=J(3,3,.)
+
+. forvalues i= 1/3{
+  2.         mat L_R[`i',1]=b[1,`i']
+  3.         mat L_R[`i',2]=V[`i',`i']
+  4.         mat L_R[`i',3]=e(df_`i')
+  5.         }
+
+. 
+. *High Rent      
+. mat def H_R=J(3,3,.)
+
+. forvalues i= 4/6{
+  2.         loc j=`i'-3
+  3.         mat H_R[`j',1]=b[1,`i']
+  4.         mat H_R[`j',2]=V[`i',`i']
+  5.         mat H_R[`j',3]=e(df_`i')
+  6.         }
+
+. 
+. 
+. 
+. matrix define B=J(`quartiles'-1,5,.)
+
+. 
+. forvalues j = 2/`quartiles'{
+  2.         loc i=  `j'-1
+  3.         matrix B[`i',1] = L_R[`i',1] - invttail(L_R[`i',3],0.05)*sqrt(L_R[
+> `i',2])
+  4.         matrix B[`i',2] = L_R[`i',1] 
+  5.         matrix B[`i',3] = L_R[`i',1] + invttail(L_R[`i',3],0.05)*sqrt(L_R[
+> `i',2])
+  6. 
+.         *sum Minority_dec`j'_rent_dec1
+.         *matrix B[`i',4]=`r(sum)'
+.         sum Minority if dec`j'==1
+  7.         matrix B[`i',4]=`r(N)'
+  8.         sum choice if White==1 &  dec`j'==1
+  9.         matrix B[`i',5]=`r(mean)'
+ 10. 
+.         mat list B
+ 11.         
+. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      1,794    .6661093    .4717327          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |        599    .3906511    .4883041          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -.75670619  -.33113816   .09442986        1794   .39065109
+r2           .           .           .           .           .
+r3           .           .           .           .           .
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      3,397    .6685311    .4708105          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |      1,126    .4209591    .4939324          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -.75670619  -.33113816   .09442986        1794   .39065109
+r2  -.70840145  -.44281104  -.17722062        3397   .42095915
+r3           .           .           .           .           .
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      1,590    .6666667    .4715528          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |        530    .3509434    .4777161          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -.75670619  -.33113816   .09442986        1794   .39065109
+r2  -.70840145  -.44281104  -.17722062        3397   .42095915
+r3   .10463325   .32533616   .54603906        1590    .3509434
+
+. 
+. 
+. *--------------------------------------------------------------------
+. preserve
+
+. clear
+
+. svmat B
+number of observations will be reset to 3
+Press any key to continue, or Break to abort
+number of observations (_N) was 0, now 3
+
+. gen n=_n
+
+. replace B1=exp(B1)
+(3 real changes made)
+
+. replace B2=exp(B2)
+(3 real changes made)
+
+. replace B3=exp(B3)
+(3 real changes made)
+
+. 
+. 
+. rename B1 lci
+
+. rename B2 or
+
+. rename B3 uci
+
+. 
+. rename n deciles
+
+. 
+. 
+. save "../stores/aux/interquartile_toxconc_minority_rent_low_bootcl.dta", repl
+> ace
+file ../stores/aux/interquartile_toxconc_minority_rent_low_bootcl.dta saved
+
+. restore
+
+. *--------------------------------------------------------------------
+. 
+. 
+. 
+. 
+. matrix define B=J(`quartiles'-1,5,.)
+
+. 
+. forvalues j = 2/`quartiles'{
+  2.         loc i=  `j'-1
+  3.         matrix B[`i',1] = H_R[`i',1] - invttail(H_R[`i',3],0.05)*sqrt(H_R[
+> `i',2])
+  4.         matrix B[`i',2] = H_R[`i',1] 
+  5.         matrix B[`i',3] = H_R[`i',1] + invttail(H_R[`i',3],0.05)*sqrt(H_R[
+> `i',2])
+  6. 
+.         *sum Minority_dec`j'_rent_dec2
+.         *matrix B[`i',4]=`r(sum)'
+.         sum Minority if dec`j'==1
+  7.         matrix B[`i',4]=`r(N)'
+  8.         sum choice if White==1 &  dec`j'==1
+  9.         matrix B[`i',5]=`r(mean)'
+ 10.         
+.         
+.         mat list B
+ 11.         
+. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      1,794    .6661093    .4717327          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |        599    .3906511    .4883041          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -.93962451  -.64527604  -.35092757        1794   .39065109
+r2           .           .           .           .           .
+r3           .           .           .           .           .
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      3,397    .6685311    .4708105          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |      1,126    .4209591    .4939324          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -.93962451  -.64527604  -.35092757        1794   .39065109
+r2  -.60642237   -.2566266   .09316916        3397   .42095915
+r3           .           .           .           .           .
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      1,590    .6666667    .4715528          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |        530    .3509434    .4777161          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -.93962451  -.64527604  -.35092757        1794   .39065109
+r2  -.60642237   -.2566266   .09316916        3397   .42095915
+r3  -.46962439  -.04088832   .38784776        1590    .3509434
+
+. 
+. 
+. *--------------------------------------------------------------------
+. preserve
+
+. clear
+
+. svmat B
+number of observations will be reset to 3
+Press any key to continue, or Break to abort
+number of observations (_N) was 0, now 3
+
+. gen n=_n
+
+. replace B1=exp(B1)
+(3 real changes made)
+
+. replace B2=exp(B2)
+(3 real changes made)
+
+. replace B3=exp(B3)
+(3 real changes made)
+
+. 
+. 
+. 
+. rename B1 lci
+
+. rename B2 or
+
+. rename B3 uci
+
+. 
+. rename n deciles
+
+. 
+. 
+. save "../stores/aux/interquartile_toxconc_minority_rent_high_bootcl.dta", rep
+> lace
+file ../stores/aux/interquartile_toxconc_minority_rent_high_bootcl.dta saved
+
+. restore
+
+. *--------------------------------------------------------------------
+. 
+. 
+. *****************************************************************************
+> *******************
+. * Demographinc Composition, Above vs Below Minority Shares
+. *****************************************************************************
+> *******************
+. gen minorityshare=blackshare+hispanicshare 
+
+. egen quartileZIP_minority_share=xtile(minorityshare), n(2) by(Zip_Code)  
+
+. 
+. mean minorityshare, over(quartileZIP_minority_share)
+
+Mean estimation                   Number of obs   =      6,781
+
+            1: quartileZIP_minority_share = 1
+            2: quartileZIP_minority_share = 2
+
+---------------------------------------------------------------
+         Over |       Mean   Std. Err.     [95% Conf. Interval]
+--------------+------------------------------------------------
+minorityshare |
+            1 |   .2404104   .0045149      .2315597    .2492611
+            2 |   .4928549   .0059169      .4812559     .504454
+---------------------------------------------------------------
+
+. 
+. *Decile 1 Low share of minority
+. *Decile 2 High share of minority
+. 
+. forvalues i = 1/2{
+  2.         gen w_share_dec`i'=(quartileZIP_minority_share==`i')
+  3. }
+
+. 
+. 
+. forvalues i = 2/`quartiles'{
+  2.         forvalues j = 1/2{
+  3.                 gen Minority_dec`i'_w_share_dec`j'=Minority*dec`i'*w_share
+> _dec`j'
+  4.         }
+  5. }
+
+. 
+. 
+. 
+. 
+. disc_boot choice  Minority_dec2_w_share_dec1  Minority_dec3_w_share_dec1  Min
+> ority_dec4_w_share_dec1 ///
+>                           Minority_dec2_w_share_dec2  Minority_dec3_w_share_d
+> ec2  Minority_dec4_w_share_dec2 ///
+>                                           , varlist(i.gender i.education_leve
+> l i.order)
+note: multiple positive outcomes within groups encountered.
+note: 1,331 groups (4,026 obs) dropped because of all positive or
+      all negative outcomes.
+
+Iteration 0:   log pseudolikelihood = -932.34886  
+Iteration 1:   log pseudolikelihood = -921.89287  
+Iteration 2:   log pseudolikelihood = -921.86743  
+Iteration 3:   log pseudolikelihood = -921.86743  
+
+Conditional (fixed-effects) logistic regression
+
+                                                Number of obs     =      2,755
+                                                Wald chi2(11)     =     192.15
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -921.86743               Pseudo R2         =     0.0873
+
+                              (Std. Err. adjusted for 14 clusters in Zip_Code)
+------------------------------------------------------------------------------
+             |               Robust
+      choice |      Coef.   Std. Err.      z    P>|z|     [90% Conf. Interval]
+-------------+----------------------------------------------------------------
+Minority_d.. |  -.3296582   .1937129    -1.70   0.089    -.6482875   -.0110289
+Minority_d.. |  -.3621751   .1786147    -2.03   0.043    -.6559701   -.0683801
+Minority_d.. |   .4198373   .1818608     2.31   0.021     .1207028    .7189717
+Minority_d.. |  -.9333843   .2062311    -4.53   0.000    -1.272604   -.5941644
+Minority_d.. |  -.3536767   .1753191    -2.02   0.044    -.6420509   -.0653025
+Minority_d.. |  -.0590714   .1768613    -0.33   0.738    -.3499823    .2318395
+             |
+      gender |
+       male  |  -.3201438   .0888395    -3.60   0.000    -.4662717   -.1740158
+             |
+education_~l |
+        low  |  -.1624293   .1169416    -1.39   0.165    -.3547811    .0299225
+     medium  |   -.298016    .134084    -2.22   0.026    -.5185646   -.0774675
+             |
+       order |
+          2  |  -.3386257   .2450553    -1.38   0.167    -.7417057    .0644544
+          3  |  -.9048927   .1998208    -4.53   0.000    -1.233569   -.5762167
+------------------------------------------------------------------------------
+cluster(Zip_Code)Zip_Codecluster(Zip_Code)Zip_Codecluster(Zip_Code)Zip_Codeclus
+> ter(Zip_Code)Zip_Codecluster(Zip_Code)Zip_Codecluster(Zip_Code)Zip_Code
+
+Bootstrap Corrected Estimates
+------------------------------------------------------------------------------
+             |      Coef.   Std. Err.      t    P>|t|     [90% Conf. Interval]
+-------------+----------------------------------------------------------------
+Minority_d.. |  -.3296582   .2212963    -1.49   0.160    -.7215592    .0622429
+Minority_d.. |  -.3621751   .1793303    -2.02   0.065    -.6797571    -.044593
+Minority_d.. |   .4198373   .2081608     2.02   0.065     .0511984    .7884761
+Minority_d.. |  -.9333843   .2975545    -3.14   0.008    -1.460333   -.4064351
+Minority_d.. |  -.3536767   .1911125    -1.85   0.087    -.6921242   -.0152292
+Minority_d.. |  -.0590714   .1725245    -0.34   0.738    -.3646008    .2464581
+------------------------------------------------------------------------------
+
+. 
+. mat def b=e(b)
+
+. mat def V=e(V)
+
+. 
+. *Matrices for boottest estimates
+. *Low Share
+. mat def L_S=J(3,3,.)
+
+. forvalues i= 1/3{
+  2.         mat L_S[`i',1]=b[1,`i']
+  3.         mat L_S[`i',2]=V[`i',`i']
+  4.         mat L_S[`i',3]=e(df_`i')
+  5.         }
+
+. 
+. *High Share     
+. mat def H_S=J(3,3,.)
+
+. forvalues i= 4/6{
+  2.         loc j=`i'-3
+  3.         mat H_S[`j',1]=b[1,`i']
+  4.         mat H_S[`j',2]=V[`i',`i']
+  5.         mat H_S[`j',3]=e(df_`i')
+  6.         }
+
+. 
+. 
+. *Decile 1 Low share of minority
+. 
+. 
+. matrix define B=J(`quartiles'-1,5,.)
+
+. 
+. forvalues j = 2/`quartiles'{
+  2.         loc i=  `j'-1
+  3.         matrix B[`i',1] = L_S[`i',1] - invttail(L_S[`i',3],0.05)*sqrt(L_S[
+> `i',2])
+  4.         matrix B[`i',2] = L_S[`i',1] 
+  5.         matrix B[`i',3] = L_S[`i',1] + invttail(L_S[`i',3],0.05)*sqrt(L_S[
+> `i',2])
+  6. 
+.         *sum Minority_dec`j'_w_share_dec1
+.         *matrix B[`i',4]=`r(sum)'
+.         sum Minority if dec`j'==1
+  7.         matrix B[`i',4]=`r(N)'
+  8.         sum choice if White==1 &  dec`j'==1
+  9.         matrix B[`i',5]=`r(mean)'
+ 10.         
+.         mat list B
+ 11.         
+. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      1,794    .6661093    .4717327          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |        599    .3906511    .4883041          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -.72155923  -.32965816    .0622429        1794   .39065109
+r2           .           .           .           .           .
+r3           .           .           .           .           .
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      3,397    .6685311    .4708105          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |      1,126    .4209591    .4939324          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -.72155923  -.32965816    .0622429        1794   .39065109
+r2  -.67975713  -.36217508  -.04459302        3397   .42095915
+r3           .           .           .           .           .
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      1,590    .6666667    .4715528          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |        530    .3509434    .4777161          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -.72155923  -.32965816    .0622429        1794   .39065109
+r2  -.67975713  -.36217508  -.04459302        3397   .42095915
+r3   .05119844   .41983728   .78847613        1590    .3509434
+
+. 
+. 
+. *--------------------------------------------------------------------
+. preserve
+
+. clear
+
+. svmat B
+number of observations will be reset to 3
+Press any key to continue, or Break to abort
+number of observations (_N) was 0, now 3
+
+. gen n=_n
+
+. replace B1=exp(B1)
+(3 real changes made)
+
+. replace B2=exp(B2)
+(3 real changes made)
+
+. replace B3=exp(B3)
+(3 real changes made)
+
+. 
+. 
+. 
+. rename B1 lci
+
+. rename B2 or
+
+. rename B3 uci
+
+. 
+. rename n deciles
+
+. 
+. 
+. save "../stores/aux/interquartile_toxconc_minority_w_share_low_bootcl.dta", r
+> eplace
+file ../stores/aux/interquartile_toxconc_minority_w_share_low_bootcl.dta saved
+
+. restore
+
+. *--------------------------------------------------------------------
+. 
+. *Decile 2 High share of minority
+. 
+. matrix define B=J(`quartiles'-1,5,.)
+
+. 
+. forvalues j = 2/`quartiles'{
+  2.         loc i=  `j'-1
+  3.         matrix B[`i',1] = H_S[`i',1] - invttail(H_S[`i',3],0.05)*sqrt(H_S[
+> `i',2])
+  4.         matrix B[`i',2] = H_S[`i',1] 
+  5.         matrix B[`i',3] = H_S[`i',1] + invttail(H_S[`i',3],0.05)*sqrt(H_S[
+> `i',2])
+  6. 
+.         *sum Minority_dec`j'_w_share_dec2
+.         *matrix B[`i',4]=`r(sum)'
+.         sum Minority if dec`j'==1
+  7.         matrix B[`i',4]=`r(N)'
+  8.         sum choice if White==1 &  dec`j'==1
+  9.         matrix B[`i',5]=`r(mean)'
+ 10. 
+.         mat list B
+ 11.         
+. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      1,794    .6661093    .4717327          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |        599    .3906511    .4883041          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -1.4603335  -.93338428  -.40643511        1794   .39065109
+r2           .           .           .           .           .
+r3           .           .           .           .           .
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      3,397    .6685311    .4708105          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |      1,126    .4209591    .4939324          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -1.4603335  -.93338428  -.40643511        1794   .39065109
+r2  -.69212423  -.35367672  -.01522921        3397   .42095915
+r3           .           .           .           .           .
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      1,590    .6666667    .4715528          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |        530    .3509434    .4777161          0          1
+
+B[3,5]
+            c1          c2          c3          c4          c5
+r1  -1.4603335  -.93338428  -.40643511        1794   .39065109
+r2  -.69212423  -.35367672  -.01522921        3397   .42095915
+r3  -.36460077  -.05907136   .24645806        1590    .3509434
+
+. 
+. 
+. *--------------------------------------------------------------------
+. preserve
+
+. clear
+
+. svmat B
+number of observations will be reset to 3
+Press any key to continue, or Break to abort
+number of observations (_N) was 0, now 3
+
+. gen n=_n
+
+. replace B1=exp(B1)
+(3 real changes made)
+
+. replace B2=exp(B2)
+(3 real changes made)
+
+. replace B3=exp(B3)
+(3 real changes made)
+
+. 
+. 
+. 
+. rename B1 lci
+
+. rename B2 or
+
+. rename B3 uci
+
+. 
+. rename n deciles
+
+. 
+. 
+. save "../stores/aux/interquartile_toxconc_minority_w_share_high_bootcl.dta", 
+> replace
+file ../stores/aux/interquartile_toxconc_minority_w_share_high_bootcl.dta saved
+
+. restore
+
+. 
+. 
+. *****************************************************************************
+> *******************
+. * Matched Sample
+. *****************************************************************************
+> *******************/
+. 
+. 
+. 
+. preserve
+
+. keep if matched_sample==1
+(2,917 observations deleted)
+
+. 
+. 
+. loc quartiles 4
+
+. 
+. disc_boot choice  Minority_dec2 Minority_dec3 Minority_dec4 ///
+>                                           , varlist(i.gender i.education_leve
+> l i.order)
+note: multiple positive outcomes within groups encountered.
+note: 773 groups (2,343 obs) dropped because of all positive or
+      all negative outcomes.
+
+Iteration 0:   log pseudolikelihood = -519.18359  
+Iteration 1:   log pseudolikelihood = -515.14241  
+Iteration 2:   log pseudolikelihood = -515.13561  
+Iteration 3:   log pseudolikelihood = -515.13561  
+
+Conditional (fixed-effects) logistic regression
+
+                                                Number of obs     =      1,521
+                                                Wald chi2(8)      =     163.69
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -515.13561               Pseudo R2         =     0.0750
+
+                              (Std. Err. adjusted for 14 clusters in Zip_Code)
+------------------------------------------------------------------------------
+             |               Robust
+      choice |      Coef.   Std. Err.      z    P>|z|     [90% Conf. Interval]
+-------------+----------------------------------------------------------------
+Minor~y_dec2 |  -.4582907   .1639704    -2.79   0.005     -.727998   -.1885834
+Minority_d~3 |  -.2906945   .2141468    -1.36   0.175    -.6429346    .0615456
+Minority_d~4 |   .0334565   .1304906     0.26   0.798    -.1811815    .2480946
+             |
+      gender |
+       male  |  -.2409355   .1051417    -2.29   0.022    -.4138781   -.0679928
+             |
+education_~l |
+        low  |  -.1719395   .1132232    -1.52   0.129    -.3581752    .0142962
+     medium  |  -.4310403   .1942615    -2.22   0.026    -.7505721   -.1115086
+             |
+       order |
+          2  |  -.4099087    .195824    -2.09   0.036    -.7320105   -.0878068
+          3  |   -.870829   .2134557    -4.08   0.000    -1.221932   -.5197255
+------------------------------------------------------------------------------
+cluster(Zip_Code)Zip_Codecluster(Zip_Code)Zip_Codecluster(Zip_Code)Zip_Code
+
+Bootstrap Corrected Estimates
+------------------------------------------------------------------------------
+             |      Coef.   Std. Err.      t    P>|t|     [90% Conf. Interval]
+-------------+----------------------------------------------------------------
+Minor~y_dec2 |  -.4582907   .1727942    -2.65   0.020    -.7642978   -.1522837
+Minority_d~3 |  -.2906945   .2007148    -1.45   0.171     -.646147     .064758
+Minority_d~4 |   .0334565   .1317805     0.25   0.804     -.199918    .2668311
+------------------------------------------------------------------------------
+
+. 
+. mat def b=e(b)
+
+. mat def V=e(V)
+
+. 
+. mat def C=J(3,3,.)
+
+. forvalues i= 1/3{
+  2.         mat C[`i',1]=b[1,`i']
+  3.         mat C[`i',2]=V[`i',`i']
+  4.         mat C[`i',3]=e(df_`i')
+  5.         }
+
+. 
+. 
+. loc quartiles 4
+
+. matrix define M=J(`quartiles'-1,5,.)
+
+. forvalues j = 2/`quartiles'{
+  2.         loc i=  `j'-1
+  3.                 
+.         matrix M[`i',1] = C[`i',1] - invttail(C[`i',3],0.05)*sqrt(C[`i',2])
+  4.         matrix M[`i',2] = C[`i',1] 
+  5.         matrix M[`i',3] = C[`i',1] + invttail(C[`i',3],0.05)*sqrt(C[`i',2]
+> )
+  6. 
+.         sum Minority if dec`j'==1
+  7.         matrix M[`i',4]=`r(N)'
+  8.         sum choice if White==1 &  dec`j'==1
+  9.         matrix M[`i',5]=`r(mean)'
+ 10.         
+.         mat list M
+ 11. 
+. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      1,266    .6666667    .4715908          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |        422    .3933649    .4890765          0          1
+
+M[3,5]
+            c1          c2          c3          c4          c5
+r1  -.76429778  -.45829074   -.1522837        1266   .39336493
+r2           .           .           .           .           .
+r3           .           .           .           .           .
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      1,314    .6681887    .4710429          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |        436    .4174312    .4937018          0          1
+
+M[3,5]
+            c1          c2          c3          c4          c5
+r1  -.76429778  -.45829074   -.1522837        1266   .39336493
+r2    -.646147   -.2906945   .06475799        1314   .41743119
+r3           .           .           .           .           .
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    Minority |      1,284    .6666667    .4715882          0          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      choice |        428    .3668224    .4825015          0          1
+
+M[3,5]
+            c1          c2          c3          c4          c5
+r1  -.76429778  -.45829074   -.1522837        1266   .39336493
+r2    -.646147   -.2906945   .06475799        1314   .41743119
+r3  -.19991799   .03345654   .26683106        1284   .36682243
+
+. restore
+
+. 
+. *--------------------------------------------------------------------
+. preserve
+
+. clear
+
+. svmat M
+number of observations will be reset to 3
+Press any key to continue, or Break to abort
+number of observations (_N) was 0, now 3
+
+. gen n=_n
+
+. replace M1=exp(M1)
+(3 real changes made)
+
+. replace M2=exp(M2)
+(3 real changes made)
+
+. replace M3=exp(M3)
+(3 real changes made)
+
+. 
+. 
+. rename M1 lci
+
+. rename M2 or
+
+. rename M3 uci
+
+. 
+. 
+. rename n deciles
+
+. 
+. 
+. save "../stores/aux/interquartile_toxconc_minority_matched_bootcl.dta", repla
+> ce
+file ../stores/aux/interquartile_toxconc_minority_matched_bootcl.dta saved
+
+. restore
+
+. 
+. *end
+. 
+end of do-file

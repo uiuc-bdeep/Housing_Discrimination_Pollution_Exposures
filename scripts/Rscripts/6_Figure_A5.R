@@ -1,7 +1,7 @@
-##########################################################
-# author: Ignacio Sarmiento-Barbieri
-# based on Peter Christensen's code
-##########################################################
+##########################################################################################################
+#Replication Files for Housing Discrimination and the Toxics Exposure Gap in the United States: 
+#Evidence from the Rental Market  by Peter Christensen, Ignacio Sarmiento-Barbieri and Christopher Timmins
+##########################################################################################################
 
 #Clean the workspace
 rm(list=ls())
@@ -24,37 +24,16 @@ dta3$timestamp_response_received<-as.character(dta3$timestamp_response_received)
 dta3$response_time<-str_remove(dta3$timestamp_response_received,".[0-9][0-9][0-9]-[0-9][0-9]:[0-9][0-9]")
 dta3$response_time<-str_replace(dta3$response_time,"T"," ")
 dta3$response_time<-ymd_hms(dta3$response_time)
-dta3$timestamp_inquiry_sent_out<-mdy_hms(dta3$timestamp_inquiry_sent_out)
+dta3$timestamp_inquiry_sent_out<-mdy_hm(dta3$timestamp_inquiry_sent_out)
 
-dta3$date2<-mdy_hm(dta3$date)
-dta3$response_days<-dta3$response_time-dta3$date2
-
-
-
-# dta3$response_days<-dta3$response_days/60
-# dta3$response_days<-dta3$response_days/24
-summary(dta3$response_days)
+dta3$response_days<-dta3$response_time-dta3$timestamp_inquiry_sent_out
 
 dta3$response_days<-as.numeric(dta3$response_days,units="days")
 
 
-name_output<-"../views/response_days"
-ht<-4
-wd<-6
-#table(dta$Zip_Code)
-
 colors <- tibble::deframe(ggthemes::ggthemes_data[["fivethirtyeight"]])
 base_size = 4
 base_family = "sans"
-#require(grid)
-
-# x<-dta3 %>% filter(response_days<0)
-# y<-dta3 %>% filter(response_days>=8)
-# z<- dta3 %>% filter(!is.na(response_days))
-# summary(y$response_days)
-# (dim(x)[1]+dim(y)[1])/dim(z)[1]
-# dim(x)[1]/dim(z)[1]
-# dim(y)[1]/dim(z)[1]
 dta4<-dta3 %>% filter(response_days>=0,response_days<8)
 dta4 <- dta4 %>% mutate(hours=ifelse(response_days<=0.3,1,0),
                         day=ifelse(response_days<=1,1,0),
@@ -80,4 +59,4 @@ ggplot(dta4,aes(x=response_days)) +
         axis.text.x =element_text( angle=0),
         rect = element_rect(colour = "transparent", fill = "white"),
         axis.title = element_text(), plot.margin = unit(c(2,2,1,1), "lines"))
-#ggsave(filename=paste0(name_output,".png"), height = ht, width = wd)
+ggsave(filename="../views/response_days.png", height = 4, width = 6)

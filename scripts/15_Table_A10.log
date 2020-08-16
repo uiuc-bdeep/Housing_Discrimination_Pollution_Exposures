@@ -1,0 +1,729 @@
+
+  ___  ____  ____  ____  ____ (R)
+ /__    /   ____/   /   ____/
+___/   /   /___/   /   /___/   15.1   Copyright 1985-2017 StataCorp LLC
+  Statistics/Data Analysis            StataCorp
+                                      4905 Lakeway Drive
+     MP - Parallel Edition            College Station, Texas 77845 USA
+                                      800-STATA-PC        http://www.stata.com
+                                      979-696-4600        stata@stata.com
+                                      979-696-4601 (fax)
+
+32-user 64-core Stata network perpetual license:
+       Serial number:  501506200495
+         Licensed to:  Harvard-MIT Data Center
+                       Cambridge, MA
+
+Notes:
+      1.  Stata is running in batch mode.
+      2.  Unicode is supported; see help unicode_advice.
+      3.  More than 2 billion observations are allowed; see help obs_advice.
+      4.  Maximum number of variables is set to 5000; see help set_maxvar.
+
+. do "dofiles/15_Table_A10.do" 
+
+. /*
+> Replication files for "Housing Discrimination and the Pollution Exposure Gap 
+> in the United States" 
+> */
+. 
+. 
+. clear all
+
+. set matsize 11000
+
+. 
+. use "../stores/toxic_discrimination_data.dta"
+
+. 
+. 
+. keep if sample==1
+(801 observations deleted)
+
+. 
+. loc quartiles 4
+
+. 
+. 
+. set seed 1010101
+
+. 
+. *****************************************************************************
+> *******************
+. * Minority
+. *****************************************************************************
+> *******************
+. 
+. 
+. 
+. clogit choice Minority_dec2 Minority_dec3 Minority_dec4 i.gender i.education_
+> level i.order, group(Address)
+note: multiple positive outcomes within groups encountered.
+note: 1,331 groups (4,026 obs) dropped because of all positive or
+      all negative outcomes.
+
+Iteration 0:   log likelihood = -934.52438  
+Iteration 1:   log likelihood = -924.94175  
+Iteration 2:   log likelihood = -924.91776  
+Iteration 3:   log likelihood = -924.91776  
+
+Conditional (fixed-effects) logistic regression
+
+                                                Number of obs     =      2,755
+                                                LR chi2(8)        =     170.25
+                                                Prob > chi2       =     0.0000
+Log likelihood = -924.91776                     Pseudo R2         =     0.0843
+
+------------------------------------------------------------------------------
+      choice |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+Minority_d~2 |  -.5357658   .1523794    -3.52   0.000    -.8344238   -.2371077
+Minority_d~3 |  -.3581274   .1041066    -3.44   0.001    -.5621726   -.1540822
+Minority_d~4 |   .1466449   .1465781     1.00   0.317    -.1406428    .4339326
+             |
+      gender |
+       male  |  -.3249383   .0848934    -3.83   0.000    -.4913264   -.1585502
+             |
+education_~l |
+        low  |  -.1612483   .1155358    -1.40   0.163    -.3876942    .0651976
+     medium  |  -.2999534   .0980312    -3.06   0.002     -.492091   -.1078158
+             |
+       order |
+          2  |  -.3372789   .0845441    -3.99   0.000    -.5029824   -.1715755
+          3  |  -.9037681   .0861876   -10.49   0.000    -1.072693   -.7348435
+------------------------------------------------------------------------------
+
+. predict phat, pu0
+
+. 
+. sum phat if Minority==1 & dec2==1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        phat |      1,195    .2260633    .0711038   .1126029   .3691731
+
+. loc p12 `r(mean)'
+
+. sum phat if Minority==0 & dec2==1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        phat |        599    .3364736    .0916679   .1781899         .5
+
+. loc p02 `r(mean)'
+
+. 
+. di "Relative Risk P(Minority=1|Dec=2]/P(Minority=0|Dec=2] " `p12'/`p02' 
+Relative Risk P(Minority=1|Dec=2]/P(Minority=0|Dec=2] .67186046
+
+. 
+. 
+. sum phat if Minority==1 & dec3==1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        phat |      2,271    .2609145    .0779931   .1316112    .411413
+
+. loc p13 `r(mean)'
+
+. sum phat if Minority==0 & dec3==1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        phat |      1,126    .3341167    .0895802   .1781899         .5
+
+. loc p03 `r(mean)'
+
+. 
+. di `p13'/`p03'
+.78090816
+
+. di "Relative Risk P(Minority=1|Dec=3]/P(Minority=0|Dec=3] " `p13'/`p03'
+Relative Risk P(Minority=1|Dec=3]/P(Minority=0|Dec=3] .78090816
+
+. 
+. sum phat if Minority==1 & dec4==1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        phat |      1,060    .3647892    .0949328   .2006856   .5365956
+
+. loc p14 `r(mean)'
+
+. sum phat if Minority==0 & dec4==1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        phat |        530    .3281379    .0910547   .1781899         .5
+
+. loc p04 `r(mean)'
+
+. 
+. di `p14'/`p04'
+1.1116949
+
+. di "Relative Risk P(Minority=1|Dec=4]/P(Minority=0|Dec=4] " `p14'/`p04'
+Relative Risk P(Minority=1|Dec=4]/P(Minority=0|Dec=4] 1.1116949
+
+. *collapse (mean) phat (count) choice, by(Minority dec2 dec3 dec4)
+. 
+. 
+. mat def M=J(3,1,.)
+
+. mat rownames M = minority minority minority
+
+. mat M[1,1]=`p12'/`p02' 
+
+. mat M[2,1]=`p13'/`p03'
+
+. mat M[3,1]=`p14'/`p04'
+
+. 
+. 
+. *****************************************************************************
+> *******************
+. * African American vs Hispanic/LatinX
+. *****************************************************************************
+> *******************
+. 
+. clogit choice  Hispanic_dec2  Hispanic_dec3 Hispanic_dec4 ///
+>                                         Black_dec2  Black_dec3 Black_dec4 i.g
+> ender i.education_level i.order, group(Address)
+note: multiple positive outcomes within groups encountered.
+note: 1,331 groups (4,026 obs) dropped because of all positive or
+      all negative outcomes.
+
+Iteration 0:   log likelihood = -918.59187  
+Iteration 1:   log likelihood = -907.79723  
+Iteration 2:   log likelihood = -907.73705  
+Iteration 3:   log likelihood = -907.73704  
+
+Conditional (fixed-effects) logistic regression
+
+                                                Number of obs     =      2,755
+                                                LR chi2(11)       =     204.61
+                                                Prob > chi2       =     0.0000
+Log likelihood = -907.73704                     Pseudo R2         =     0.1013
+
+------------------------------------------------------------------------------
+      choice |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+Hispanic_d~2 |  -.2555039   .1739161    -1.47   0.142    -.5963731    .0853654
+Hispanic_d~3 |  -.0865548   .1208037    -0.72   0.474    -.3233257    .1502161
+Hispanic_d~4 |   .2885374   .1703803     1.69   0.090    -.0454019    .6224766
+  Black_dec2 |  -.8365772   .1793361    -4.66   0.000    -1.188069    -.485085
+  Black_dec3 |  -.6300539   .1218238    -5.17   0.000    -.8688241   -.3912836
+  Black_dec4 |   .0021007   .1696713     0.01   0.990    -.3304489    .3346503
+             |
+      gender |
+       male  |  -.3198317   .0859056    -3.72   0.000    -.4882036   -.1514598
+             |
+education_~l |
+        low  |  -.2039072   .1171616    -1.74   0.082    -.4335397    .0257254
+     medium  |  -.3230426   .0992449    -3.26   0.001     -.517559   -.1285262
+             |
+       order |
+          2  |  -.3284429   .0855356    -3.84   0.000    -.4960895   -.1607963
+          3  |  -.9071631   .0873287   -10.39   0.000    -1.078324    -.736002
+------------------------------------------------------------------------------
+
+. predict phat_h_b, pu0
+
+. 
+. sum phat_h_b if Hispanic==1 & dec2==1 & Black==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |        599    .2686267     .082539   .1411779   .4364693
+
+. loc p12_h `r(mean)'
+
+. sum phat_h_b if Hispanic==0 & dec2==1 & Black==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |        599     .333338    .0918723   .1750809         .5
+
+. loc p02_h `r(mean)'
+
+. 
+. di "Relative Risk P(Hispanic=1|Dec=2]/P(Hispanic=0|Dec=2] " `p12_h'/`p02_h' 
+Relative Risk P(Hispanic=1|Dec=2]/P(Hispanic=0|Dec=2] .80586871
+
+. 
+. 
+. sum phat_h_b if Hispanic==1 & dec3==1 & Black==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,129    .3129514    .0881201   .1629293   .4783748
+
+. loc p13_h `r(mean)'
+
+. sum phat_h_b if Hispanic==0 & dec3==1 & Black==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,126    .3306264    .0896799   .1750809         .5
+
+. loc p03_h `r(mean)'
+
+. 
+. di `p13_h'/`p03_h'
+.94654079
+
+. di "Relative Risk P(Hispanic=1|Dec=3]/P(Hispanic=0|Dec=3] " `p13_h'/`p03_h'
+Relative Risk P(Hispanic=1|Dec=3]/P(Hispanic=0|Dec=3] .94654079
+
+. 
+. sum phat_h_b if Hispanic==1 & dec4==1 & Black==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |        531    .3899869    .0976289   .2207158    .571638
+
+. loc p14_h `r(mean)'
+
+. sum phat_h_b if Hispanic==0 & dec4==1 & Black==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |        530     .324903    .0912591   .1750809         .5
+
+. loc p04_h `r(mean)'
+
+. 
+. di `p14_h'/`p04_h'
+1.2003179
+
+. di "Relative Risk P(Hispanic=1|Dec=4]/P(Hispanic=0|Dec=4] " `p14_h'/`p04_h'
+Relative Risk P(Hispanic=1|Dec=4]/P(Hispanic=0|Dec=4] 1.2003179
+
+. 
+. 
+. mat def H=J(3,1,.)
+
+. mat rownames H = hispanic hispanic hispanic
+
+. mat H[1,1]=`p12_h'/`p02_h' 
+
+. mat H[2,1]=`p13_h'/`p03_h'
+
+. mat H[3,1]=`p14_h'/`p04_h'
+
+. 
+. 
+. 
+. *Af American
+. 
+. sum phat_h_b if Black==1 & dec2==1 & Hispanic==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |        596    .1808786    .0589743   .0841991   .3022561
+
+. loc p12_b `r(mean)'
+
+. sum phat_h_b if Black==0 & dec2==1 & Hispanic==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |        599     .333338    .0918723   .1750809         .5
+
+. loc p02_b `r(mean)'
+
+. 
+. di "Relative Risk P(Hispanic=1|Dec=2]/P(Hispanic=0|Dec=2] " `p12_b'/`p02_b' 
+Relative Risk P(Hispanic=1|Dec=2]/P(Hispanic=0|Dec=2] .54262799
+
+. 
+. 
+. sum phat_h_b if Black==1 & dec3==1 & Hispanic==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,142    .2094478    .0674235   .1015526   .3474983
+
+. loc p13_b `r(mean)'
+
+. sum phat_h_b if Black==0 & dec3==1 & Hispanic==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,126    .3306264    .0896799   .1750809         .5
+
+. loc p03_b `r(mean)'
+
+. 
+. di `p13_b'/`p03_b'
+.63348776
+
+. di "Relative Risk P(Hispanic=1|Dec=3]/P(Hispanic=0|Dec=3] " `p13_b'/`p03_b'
+Relative Risk P(Hispanic=1|Dec=3]/P(Hispanic=0|Dec=3] .63348776
+
+. 
+. sum phat_h_b if Black==1 & dec4==1 & Hispanic==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |        529    .3333059    .0921663   .1753845   .5005252
+
+. loc p14_b `r(mean)'
+
+. sum phat_h_b if Black==0 & dec4==1 & Hispanic==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |        530     .324903    .0912591   .1750809         .5
+
+. loc p04_b `r(mean)'
+
+. 
+. di `p14_b'/`p04_b'
+1.025863
+
+. di "Relative Risk P(Hispanic=1|Dec=4]/P(Hispanic=0|Dec=4] " `p14_b'/`p04_b'
+Relative Risk P(Hispanic=1|Dec=4]/P(Hispanic=0|Dec=4] 1.025863
+
+. 
+. 
+. mat def A=J(3,1,.)
+
+. mat rownames A = black black black
+
+. mat A[1,1]=`p12_b'/`p02_b' 
+
+. mat A[2,1]=`p13_b'/`p03_b'
+
+. mat A[3,1]=`p14_b'/`p04_b'
+
+. 
+. 
+. *Export
+. 
+. mat def Res=M\A\H
+
+. mat list Res
+
+Res[9,1]
+                 c1
+minority  .67186046
+minority  .78090816
+minority  1.1116949
+   black  .54262799
+   black  .63348776
+   black   1.025863
+hispanic  .80586871
+hispanic  .94654079
+hispanic  1.2003179
+
+. 
+. preserve
+
+. clear
+
+. svmat2 Res,  names(col)  rnames(race)
+number of observations will be reset to 9
+Press any key to continue, or Break to abort
+number of observations (_N) was 0, now 9
+
+. gen n=_n
+
+. 
+. save "../stores/aux/rel_risk_quartile.dta"  , replace
+(note: file ../stores/aux/rel_risk_quartile.dta not found)
+file ../stores/aux/rel_risk_quartile.dta saved
+
+. restore
+
+. 
+. 
+. *****************************************************************************
+> *******************
+. *****************************************************************************
+> *******************
+. * Distance Minority_within1  Minority_more1
+. *****************************************************************************
+> *******************
+. *****************************************************************************
+> *******************
+. 
+. 
+. drop phat phat_h_b
+
+. clogit choice Minority_within1  Minority_more1 i.gender i.education_level i.o
+> rder, group(Address)
+note: multiple positive outcomes within groups encountered.
+note: 1,331 groups (4,026 obs) dropped because of all positive or
+      all negative outcomes.
+
+Iteration 0:   log likelihood = -936.69707  
+Iteration 1:   log likelihood = -928.68062  
+Iteration 2:   log likelihood = -928.66086  
+Iteration 3:   log likelihood = -928.66086  
+
+Conditional (fixed-effects) logistic regression
+
+                                                Number of obs     =      2,755
+                                                LR chi2(7)        =     162.77
+                                                Prob > chi2       =     0.0000
+Log likelihood = -928.66086                     Pseudo R2         =     0.0806
+
+------------------------------------------------------------------------------
+      choice |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+Minority_w~1 |  -.1187963   .1037319    -1.15   0.252     -.322107    .0845145
+Minority_m~1 |  -.4281179    .105068    -4.07   0.000    -.6340473   -.2221885
+             |
+      gender |
+       male  |  -.3329491   .0847933    -3.93   0.000    -.4991408   -.1667573
+             |
+education_~l |
+        low  |  -.1746532   .1153328    -1.51   0.130    -.4007013    .0513948
+     medium  |  -.2954653   .0978224    -3.02   0.003    -.4871936    -.103737
+             |
+       order |
+          2  |  -.3452789   .0842734    -4.10   0.000    -.5104518    -.180106
+          3  |  -.9088799   .0861482   -10.55   0.000    -1.077727   -.7400325
+------------------------------------------------------------------------------
+
+. predict phat, pu0
+
+. 
+. sum phat if Minority==1 & within1==1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        phat |      2,190    .3052184    .0865906   .1602875   .4703358
+
+. loc p12 `r(mean)'
+
+. sum phat if Minority==0 & within1==1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        phat |      1,086    .3308793    .0906711    .176929         .5
+
+. loc p02 `r(mean)'
+
+. 
+. 
+. 
+. sum phat if Minority==1 & more1==1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        phat |      2,336    .2451631    .0757557   .1228825   .3945758
+
+. loc p13 `r(mean)'
+
+. sum phat if Minority==0 & more1==1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        phat |      1,169    .3314513    .0908911    .176929         .5
+
+. loc p03 `r(mean)'
+
+. 
+. 
+. mat def M=J(2,1,.)
+
+. mat rownames M = minority minority 
+
+. mat M[1,1]=`p12'/`p02' 
+
+. mat M[2,1]=`p13'/`p03'
+
+. 
+. 
+. 
+. *****************************************************************************
+> *******************
+. * African American vs Hispanic/LatinX
+. *****************************************************************************
+> *******************
+. 
+. clogit choice  Hispanic_within1  Hispanic_more1  ///
+>                                         Black_within1  Black_more1  i.gender 
+> i.education_level i.order, group(Address)
+note: multiple positive outcomes within groups encountered.
+note: 1,331 groups (4,026 obs) dropped because of all positive or
+      all negative outcomes.
+
+Iteration 0:   log likelihood =  -921.4252  
+Iteration 1:   log likelihood = -912.27329  
+Iteration 2:   log likelihood = -912.22153  
+Iteration 3:   log likelihood = -912.22153  
+
+Conditional (fixed-effects) logistic regression
+
+                                                Number of obs     =      2,755
+                                                LR chi2(9)        =     195.64
+                                                Prob > chi2       =     0.0000
+Log likelihood = -912.22153                     Pseudo R2         =     0.0968
+
+------------------------------------------------------------------------------
+      choice |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+Hispanic_w~1 |    .145887   .1216282     1.20   0.230    -.0924999     .384274
+Hispanic_m~1 |  -.2055294   .1204591    -1.71   0.088     -.441625    .0305661
+Black_with~1 |  -.3731296   .1202215    -3.10   0.002    -.6087594   -.1374997
+ Black_more1 |   -.665722   .1236248    -5.39   0.000    -.9080222   -.4234218
+             |
+      gender |
+       male  |   -.324701   .0856792    -3.79   0.000    -.4926291   -.1567729
+             |
+education_~l |
+        low  |  -.2161598   .1169538    -1.85   0.065    -.4453851    .0130655
+     medium  |   -.315826   .0989155    -3.19   0.001    -.5096969   -.1219551
+             |
+       order |
+          2  |  -.3410449   .0853666    -4.00   0.000    -.5083603   -.1737295
+          3  |  -.9144952   .0872015   -10.49   0.000    -1.085407   -.7435834
+------------------------------------------------------------------------------
+
+. predict phat_h_b, pu0
+
+. 
+. sum phat_h_b if Hispanic==1 & within1==1 & Black==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,093    .3594548     .095166   .1963705   .5364072
+
+. loc p12_h `r(mean)'
+
+. sum phat_h_b if Hispanic==0 & within1==1 & Black==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,086     .327704     .090765   .1743621         .5
+
+. loc p02_h `r(mean)'
+
+. 
+. 
+. 
+. sum phat_h_b if Hispanic==1 & more1==1 & Black==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,166    .2806613    .0843769   .1467213   .4487978
+
+. loc p13_h `r(mean)'
+
+. sum phat_h_b if Hispanic==0 & more1==1 & Black==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,169    .3282466     .091092   .1743621         .5
+
+. loc p03_h `r(mean)'
+
+. 
+. 
+. 
+. 
+. mat def H=J(2,1,.)
+
+. mat rownames H = hispanic hispanic 
+
+. mat H[1,1]=`p12_h'/`p02_h' 
+
+. mat H[2,1]=`p13_h'/`p03_h'
+
+. 
+. 
+. 
+. 
+. *Af American
+. 
+. sum phat_h_b if Black==1 & within1==1 & Hispanic==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,097    .2520791    .0775537   .1269553    .407785
+
+. loc p12_b `r(mean)'
+
+. sum phat_h_b if Black==0 & within1==1 & Hispanic==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,086     .327704     .090765   .1743621         .5
+
+. loc p02_b `r(mean)'
+
+. 
+. 
+. 
+. 
+. sum phat_h_b if Black==1 & more1==1 & Hispanic==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,170    .2055555    .0664356   .0979031   .3394554
+
+. loc p13_b `r(mean)'
+
+. sum phat_h_b if Black==0 & more1==1 & Hispanic==0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    phat_h_b |      1,169    .3282466     .091092   .1743621         .5
+
+. loc p03_b `r(mean)'
+
+. 
+. 
+. 
+. mat def A=J(2,1,.)
+
+. mat rownames A = black black 
+
+. mat A[1,1]=`p12_b'/`p02_b' 
+
+. mat A[2,1]=`p13_b'/`p03_b'
+
+. 
+. 
+. 
+. *Export
+. 
+. mat def Res=M\A\H
+
+. mat list Res
+
+Res[6,1]
+                 c1
+minority  .92244643
+minority  .73966571
+   black  .76922814
+   black  .62622283
+hispanic  1.0968886
+hispanic  .85503209
+
+. 
+. preserve
+
+. clear
+
+. svmat2 Res,  names(col)  rnames(race)
+number of observations will be reset to 6
+Press any key to continue, or Break to abort
+number of observations (_N) was 0, now 6
+
+. gen n=_n
+
+. 
+. save "../stores/aux/rel_risk_distance.dta"  , replace
+(note: file ../stores/aux/rel_risk_distance.dta not found)
+file ../stores/aux/rel_risk_distance.dta saved
+
+. restore
+
+. *end
+. 
+. 
+end of do-file

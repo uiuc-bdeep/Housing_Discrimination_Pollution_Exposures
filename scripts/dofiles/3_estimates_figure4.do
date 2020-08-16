@@ -1,6 +1,7 @@
-/*
-Replication files for "Housing Discrimination and the Pollution Exposure Gap in the United States" 
-*/
+/*********************************************************************************************************
+Replication Files for Housing Discrimination and the Toxics Exposure Gap in the United States: 
+Evidence from the Rental Market  by Peter Christensen, Ignacio Sarmiento-Barbieri and Christopher Timmins
+*********************************************************************************************************/
 
 
 clear all
