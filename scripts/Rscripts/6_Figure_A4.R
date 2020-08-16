@@ -10,7 +10,7 @@ local({r <- getOption("repos"); r["CRAN"] <- "http://cran.r-project.org"; option
 
 
 #Load Packages
-pkg<-c("dplyr","dggplot2","ggthemes")
+pkg<-c("dplyr","ggplot2","ggthemes")
 lapply(pkg, require, character.only=T)
 rm(pkg)
 

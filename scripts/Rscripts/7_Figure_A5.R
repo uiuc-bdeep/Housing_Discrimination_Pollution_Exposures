@@ -59,4 +59,4 @@ ggplot(dta4,aes(x=response_days)) +
         axis.text.x =element_text( angle=0),
         rect = element_rect(colour = "transparent", fill = "white"),
         axis.title = element_text(), plot.margin = unit(c(2,2,1,1), "lines"))
-ggsave(filename="../views/response_days.png", height = 4, width = 6)
+ggsave(filename="../views/figA5.png", height = 4, width = 6)
