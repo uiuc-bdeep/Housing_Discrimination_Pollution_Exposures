@@ -1,6 +1,7 @@
-##########################################################
-# author: Ignacio Sarmiento-Barbieri
-##########################################################
+##########################################################################################################
+#Replication Files for Housing Discrimination and the Toxics Exposure Gap in the United States: 
+#Evidence from the Rental Market  by Peter Christensen, Ignacio Sarmiento-Barbieri and Christopher Timmins
+##########################################################################################################
 
 #Clean the workspace
 rm(list=ls())
@@ -9,7 +10,7 @@ local({r <- getOption("repos"); r["CRAN"] <- "http://cran.r-project.org"; option
 
 
 #Load Packages
-pkg<-c("dplyr","haven")
+pkg<-c("dplyr","haven","xtable")
 lapply(pkg, require, character.only=T)
 rm(pkg)
 
@@ -54,8 +55,8 @@ dta_wide<-dta_wide %>% tidyr::pivot_wider(names_from=deciles,values_from=inq_per
 dta_wide<-dta_wide %>% mutate(dif=`1`-`3`)
 dta_wide$race<-c("White","Minority","African American","Hispanic/LatinX ")
 
-library("xtable")
-print(xtable(dta_wide), include.rownames = FALSE, include.colnames = FALSE, sanitize.text.function = I)
+
+print(xtable(dta_wide), include.rownames = FALSE, include.colnames = FALSE, sanitize.text.function = I, file="../views/tableA10_a.tex")
 
 
 
@@ -112,4 +113,4 @@ dta_wide$race<-c("White","Minority","African American","Hispanic/LatinX ")
 colnames(dta_wide)<-c("race","less1","more1","dif")
 dta_wide<- dta_wide[,c("race","more1","less1","dif")]
 
-print(xtable(dta_wide), include.rownames = FALSE, include.colnames = FALSE, sanitize.text.function = I)
+print(xtable(dta_wide), include.rownames = FALSE, include.colnames = FALSE, sanitize.text.function = I, file="../views/tableA10_b.tex")

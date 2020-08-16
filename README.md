@@ -20,8 +20,8 @@ Code files:
 The analysis is conducted using Stata-15 and R version 4.0.2 (2020-06-22) software:
 
 Previous to running the command users should add the `disc_boot.ado` `disc_boot_logit.ado` file into their  stata local ado file locations. These ado files implement the  Kline and Santos (2012) standard errors correction.
-
-main.sh: Produces all figures and tables in the paper and appendix. Figures and tables are saved in the "views" folder. 
+ 
+main.sh: Contains the sequence of execution of dofiles and Rscripts to produce the figures and tables in the paper and appendix. Figures and tables are saved in the "views" folder. 
 
 Additional Notes:
 

@@ -1,8 +1,6 @@
 #!/bin/bash
 
 
-#cd "~/Dropbox/Research/Toxic_Discrimination/github/Toxic_Discrimination/"
-
 #create a folder to store intermediate results
 echo ""
 echo "**********************************************************************************************************"

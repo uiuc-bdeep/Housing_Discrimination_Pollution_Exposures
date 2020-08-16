@@ -1,7 +1,7 @@
-##########################################################
-# author: Ignacio Sarmiento-Barbieri
-# based on Peter Christensen's code
-##########################################################
+##########################################################################################################
+#Replication Files for Housing Discrimination and the Toxics Exposure Gap in the United States: 
+#Evidence from the Rental Market  by Peter Christensen, Ignacio Sarmiento-Barbieri and Christopher Timmins
+##########################################################################################################
 
 #Clean the workspace
 rm(list=ls())
@@ -10,18 +10,14 @@ local({r <- getOption("repos"); r["CRAN"] <- "http://cran.r-project.org"; option
 
 
 #Load Packages
-pkg<-c("survival","dplyr","doMC","rgeos","spdep","sp","fastDummies","tidyr","stargazer")
+pkg<-c("dplyr","stargazer")
 lapply(pkg, require, character.only=T)
 rm(pkg)
 
-#
-#Set WD local
-setwd("~/Dropbox/Research/Toxic_Discrimination/github/Toxic_Discrimination/")
 
 #Descriptive
-dta_desc<-read.csv("views/descriptive_RSEI.csv")
-dta_desc<-dta_desc[,2:4]
-dta_desc[c(1,2,7,8),]<-dta_desc[c(1,2,7,8),]/1000
+dta_desc<-read.csv("../views/descriptive_RSEI.csv")
+
 
 colnames(dta_desc)<-c("Q1","Q2-Q3","Q4")
 #dta_desc<-round(dta_desc,2)
@@ -96,7 +92,7 @@ dta_desc<- dta_desc[,c("names","Q1","Q2-Q3","Q4")]
 #Ttest
 # # -----------------------------------------------------------------------
 
-dta<-read.csv("views/descriptive_RSEI_ttest.csv")
+dta<-read.csv("../views/descriptive_RSEI_ttest.csv")
 
 colnames(dta)<-c("0th-25th","25th-75th","75th-100th")
 dta<-round(dta, 4)
@@ -127,4 +123,10 @@ dta<-dta[,c(2,3)]
 
 # Bind rows ----------------------------------------------------------------
 dta_bind<-bind_cols(dta_desc,dta)
-stargazer(dta_bind,summary=FALSE,type="text", rownames = FALSE,out="views/descriptive_RSEI.tex")
+stargazer(dta_bind,summary=FALSE,type="text", rownames = FALSE,out="../views/tableA2.tex")
+
+system("rm ../views/descriptive_RSEI.csv")
+system("rm ../views/descriptive_RSEI_ttest.csv")
+
+#end
+
