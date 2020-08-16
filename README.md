@@ -95,6 +95,7 @@ Data dictionary
 		- unemployed                                                                                                         Unemployment Rate
 
 - ACS_population:
+
 		- race                                                                                                                    Race Renters
 		- population_renters                                                                              Population of Renters in Block Group
 		- quartileZIP_property                                                                         Quartile Within Zip Toxic Concentration
