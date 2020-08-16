@@ -82,4 +82,4 @@ rsconnect/
 /stores/aux/
 /stores/zipcodes/
 /views/
-.log
+logs/

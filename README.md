@@ -28,7 +28,8 @@ Additional Notes:
 -  Scripts to reproduce Figures 1 and A3 are not released. To preserve confidentiality and in compliance with IRB we don't release identifying information of  listings, e.g., Address, geolocation, etc.
 -  Rscripts/aux folder includes auxiliary files for plots and generating matched sample
 -  Table A5, column (5) stata prints to latex the incorrect significance stars, must be corrected "by hand"
--  Table A2 and A10, must be saved manually
+-  Table A2 rows of share of listings must be manually added from stata otuput
+-  Table A10 is printed in 2 parts: tableA10_a.tex, percentile results, and tableA10_b.tex, distance results.
 
 
  
@@ -67,6 +68,7 @@ Data dictionary
 	- gender                                                                      Gender Identity
 	- education_level                                             Mother Education Level Identity
 	- order                                                                    Order Inquiry Sent
+	- inquiry_weekday 										 Day of the week inquiry was sent out
 	- Address                                                           Property Address (masked)
 	- Zip_Code                                                                  ZIP Code (masked)
 	- sample                                                                       =1 main sample
