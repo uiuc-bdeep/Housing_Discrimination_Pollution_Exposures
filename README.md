@@ -13,6 +13,7 @@ Data files
 - toxic_discrimination_data.dta: experimental data set that includes information from 19 ZIP codes drawn at random from the set of high emissions markets. 
 - ACS_population.dta: 2016 ACS block group data on renters 
 - Potential_zips.csv: 111 ZIP codes that are above the 80th percentile of TRI stack air releases
+- zipcodes.zip shapefile of US ZIP codes from the US census (must be unzipped before running files)
 
 Code files:
 
