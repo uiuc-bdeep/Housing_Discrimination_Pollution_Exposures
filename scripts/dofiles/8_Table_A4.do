@@ -80,7 +80,7 @@ esttab model1
        eqlabels(,none)
        varlabels(Minority  "Minority"
 				Black  "African American"
-				Hispanic_first "Hispanic/LatinX")
+				Hispanic "Hispanic/LatinX")
        starl(* 0.1 ** 0.05 *** 0.01)   
        level(90) 
        prehead( 

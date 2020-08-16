@@ -54,11 +54,13 @@ foreach i of varlist toxconc scorecancer scorenoncancer rent_w SFH  Apt Multi_Fa
 	matrix B[`l',`j'] = r(mean)
 	matrix B[`l'+1,`j'] = r(sd)
 
-	mat list B
+	
 	
 	}
 loc l=`l'+2
 }
+
+mat list B
 
 preserve
 clear

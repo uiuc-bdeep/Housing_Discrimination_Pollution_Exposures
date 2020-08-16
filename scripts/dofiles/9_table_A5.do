@@ -15,9 +15,9 @@ keep if sample==1
 ************************************************************************************************
 * Balance Statistics
 ************************************************************************************************
-gen first=(inquiry_order=="1")
-gen second=(inquiry_order=="2")
-gen third=(inquiry_order=="3")
+gen first=(order==1)
+gen second=(order==2)
+gen third=(order==3)
 gen Mon=(inquiry_weekday==3)
 gen Tue=(inquiry_weekday==7)
 gen Wed=(inquiry_weekday==8)

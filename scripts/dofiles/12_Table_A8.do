@@ -19,8 +19,6 @@ set seed 1010101
 ************************************************************************************************
 drop if times_zip==.
 drop if times_zip==3
-
-
 keep if sample_two_inquiries>3
 
 
