@@ -11,8 +11,6 @@ use "../stores/ACS_population.dta"
 
 
 
-gen log_x1=log(population_renters+1)
-gen log_pop=log(population_renters)
 gen ihs_pop=asinh(population_renters)
 
 
