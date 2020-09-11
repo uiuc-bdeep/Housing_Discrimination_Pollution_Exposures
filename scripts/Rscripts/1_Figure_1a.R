@@ -45,6 +45,6 @@ ggplot(data = us_states, mapping = aes(x = long, y = lat, group = group)) +
         axis.title.y=element_blank(),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank()) 
-ggsave("../views/fig1a.png")
+ggsave("../views/fig1a.pdf")
 
 

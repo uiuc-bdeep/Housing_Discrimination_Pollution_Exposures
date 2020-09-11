@@ -24,8 +24,8 @@ p<-ggplot(data=dta, aes(x=deciles, y=or, group=group))+
   geom_ribbon(aes(ymin=lci, ymax=uci, lty=group),alpha=0.2)+
   geom_line(data=dta,aes(x=deciles, y=lci),alpha=0.5, linetype="dashed")+
   geom_line(data=dta,aes(x=deciles, y=uci),alpha=0.5, linetype="dashed")+
-  geom_hline(aes(yintercept=1), colour="royalblue4", linetype="twodash") +
-  scale_y_continuous("Odds Ratio",breaks=bks) + #, limits = c(0.2,2.1))+
+  geom_hline(aes(yintercept=1), colour="black", linetype="twodash") +
+  scale_y_continuous("Odds Ratio",breaks=bks) +
   coord_cartesian(ylim = c(yccartmin,yccartmax), clip = 'off') +
   theme_bw() +
   theme_fivethirtyeight() + scale_color_fivethirtyeight("cyl") +
@@ -56,7 +56,7 @@ p<-ggplot(data=dta, aes(x=deciles, y=or, group=group))+
   }else{
     p
   }
-  ggsave(filename=paste0(location_output,".png"), height = ht, width = wd,units=uts)
+  ggsave(filename=paste0(location_output,".pdf"), height = ht, width = wd,units=uts)
   p
 }
 
@@ -74,7 +74,6 @@ plot_distance<-function(name_dta,location_output,gRp="Minority",ht=3,wd=10,grang
   colors <- tibble::deframe(ggthemes::ggthemes_data[["fivethirtyeight"]])
   base_size = 4
   base_family = "sans"
-  #plot_label_coef <- sprintf("Likelihood of Response = %#.2f", dta$or)
   plot_label_mean <- sprintf("\n Mean Response (White) = %#.2f", dta$c_mean)
   plot_label_N<- paste0("\n N = ",format(dta$obs,big.mark=","))
   
@@ -83,7 +82,7 @@ plot_distance<-function(name_dta,location_output,gRp="Minority",ht=3,wd=10,grang
     geom_linerange(ymin = grangeymin, ymax = grangeymax, color = colors["Medium Gray"]) +
     geom_point(size=2, position=position_dodge(width = .2))+
     geom_errorbar(aes(ymin=lci, ymax=uci, lty=group), width=.025, position=position_dodge(width = .2)) +
-    geom_hline(aes(yintercept=1), colour="royalblue4", linetype="twodash") +
+    geom_hline(aes(yintercept=1), colour="black", linetype="twodash") +
     scale_y_continuous("Odds Ratio",breaks=bks)+
     theme_bw() +
     coord_cartesian(ylim = c(ccartmin,ccartmax), clip = 'off') +
@@ -108,7 +107,7 @@ plot_distance<-function(name_dta,location_output,gRp="Minority",ht=3,wd=10,grang
     )
   p
   
-  ggsave(filename=paste0(location_output,".png"), height = ht, width = wd)
+  ggsave(filename=paste0(location_output,".pdf"), height = ht, width = wd)
   
   p
 }
