@@ -10,16 +10,16 @@ Local pollution exposures disproportionately impact minority households, but the
 
 ## Data files
 
-- toxic_discrimination_data.dta: experimental data set that includes information from 19 ZIP codes drawn at random from the set of high emissions markets. 
+- toxic_discrimination_data.dta: experimental data set that includes information from 19 ZIP codes drawn at random from the set of high emissions markets. Listing location was then matched to EPA 810m grid with the 2016 aggregated microdata to obtain RSEI Toxic Concentration, RSEI Cancer Score, and RSEI Non Cancer Score. RSEI data are publicly available from the EPA's ftp server at ftp://newftp.epa.gov/RSEI/. Rent, Poverty Rate, Share of African American, Share of Whites, Share of Hispanics, Population in Block Group, Share of College Educated, Unemployment Rate come from the 2016 ACS block group data available from the US Census.
 - ACS_population.dta: 2016 ACS block group data on renters 
-- Potential_zips.csv: 111 ZIP codes that are above the 80th percentile of TRI stack air releases
-- zipcodes.tar.gz shapefile of US ZIP codes from the US census 
+- Potential_zips.csv: 111 ZIP codes that are above the 80th percentile of TRI stack air releases. This was calculated using 2016 TRI data available from https://www.epa.gov/toxics-release-inventory-tri-program/tri-basic-data-files-calendar-years-1987-2018
+- zipcodes.tar.gz shapefile of US ZIP codes from the US Census. 
 
 ## Code files:
 
 - The analysis is conducted using Stata-15 version 15.1 and R version 4.0.2 (2020-06-22) software
 
-- All the code was run on a MacBookPro 2020 running macOS CAtalina Version 10.15.6
+- All the code was run on a MacBookPro 2020 running macOS Catalina Version 10.15.6
 
 - Previous to running the command users should add the  files`disc_boot.ado` `disc_boot_logit.ado` files located in the ado folder into their  stata local ado file location. These ado files implement the  Kline and Santos (2012) standard errors correction.
  
