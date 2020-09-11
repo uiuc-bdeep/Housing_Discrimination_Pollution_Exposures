@@ -228,4 +228,4 @@ ggarrange(
   heights=c(4,3,3,3)
   
 )
-ggsave(filename="../views/fig2.png",height=18,width = 8)
+ggsave(filename="../views/fig2.pdf",height=18,width = 8)
