@@ -21,7 +21,7 @@ Local pollution exposures disproportionately impact minority households, but the
 
 - All the code was run on a MacBookPro 2020 running macOS Catalina Version 10.15.6
 
-- Previous to running the command users should add the  files`disc_boot.ado` `disc_boot_logit.ado` files located in the ado folder into their  stata local ado file location. These ado files implement the  Kline and Santos (2012) standard errors correction.
+- Previous to running the command users should add the  files`disc_boot.ado` `disc_boot_logit.ado` files located in the ado folder into their  Stata local ado file location. These ado files implement the  Kline and Santos (2012) standard errors correction.
  
 - main.sh: Contains the sequence of execution of dofiles and Rscripts to produce the figures and tables in the paper and appendix. Dofiles and Rscripts are named according to the function they perform
 	- The folder dofiles contains the dofiles called by main.sh:
@@ -58,7 +58,7 @@ Local pollution exposures disproportionately impact minority households, but the
 			- plot_fct_tox_conc_n_distance.R
 	- main.sh creates:
 		- temporary auxiliary data frames that are saved in stores/aux and deleted at the end of the script
-		- a folder called logs is created and contains log files: .log for stata  and .Rout for R
+		- a folder called logs is created and contains log files: .log for Stata  and .Rout for R
 
 
 Figures and tables are saved in the "views" folder. 
@@ -68,8 +68,8 @@ Additional Notes:
 
 -  Scripts to reproduce Figures 1 and A3 are not released. To preserve confidentiality and in compliance with IRB we don't release identifying information of  listings, e.g., Address, geolocation, etc.
 -  Table A1 can be constructed from the file Potential_zips.csv
--  Table A2 rows of share of listings must be manually added from stata otuput
--  Table A5, column (5) stata prints to latex the incorrect significance stars, must be corrected "by hand"
+-  Table A2 rows of share of listings must be manually added from Stata output
+-  Table A5, column (5) Stata prints to latex the incorrect significance stars, must be corrected "by hand"
 -  Table A10 is printed in 2 parts: tableA10_a.tex, percentile results, and tableA10_b.tex, distance results.
 
 
